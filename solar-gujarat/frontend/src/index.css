@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+Gujarati:wght@400;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sky-light: #E9F6FF;
+  --sky: #4DA8FF;
+  --sky-deep: #1B6FD6;
+  --navy: #0B3D91;
+  --ink: #0F2540;
+  --muted: #5B708B;
+  --sun: #FFB81C;
+  --leaf: #1FBF75;
+  --glass-bg: rgba(255, 255, 255, 0.16);
+  --glass-brd: rgba(255, 255, 255, 0.35);
+  --surface: #FFFFFF;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-body text-ink;
+    background: linear-gradient(180deg, var(--sky-light) 0%, var(--sky) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  h1, h2, h3 {
+    @apply font-heading tracking-tight;
+  }
+  /* Visible keyboard focus rings everywhere. */
+  :focus-visible {
+    outline: 3px solid var(--sky-deep);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* Reusable glass card recipe (brief §2). */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid var(--glass-brd);
+    border-radius: 22px;
+    box-shadow: 0 12px 40px -12px rgba(15, 37, 64, 0.25);
+  }
+  /* More opaque variant for text-heavy cards. */
+  .glass-solid {
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold transition focus-visible:outline-none;
+  }
+  .btn-sun {
+    @apply btn bg-sun text-ink hover:brightness-105 active:scale-[0.98] shadow-lg;
+  }
+  .btn-sky {
+    @apply btn bg-sky-deep text-white hover:bg-navy active:scale-[0.98] shadow-lg;
+  }
+  .btn-ghost {
+    @apply btn bg-white/70 text-ink hover:bg-white border border-white/60;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

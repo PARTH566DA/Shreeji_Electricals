@@ -1,0 +1,22 @@
+# ---- Backend (Maven / Java) ----
+solar-gujarat/backend/target/
+*.class
+
+# ---- Frontend (Node / Vite) ----
+solar-gujarat/frontend/node_modules/
+solar-gujarat/frontend/dist/
+solar-gujarat/frontend/.vite/
+npm-debug.log*
+yarn-error.log*
+
+# ---- Env / secrets ----
+.env.local
+.env.*.local
+
+# ---- IDE / OS ----
+.idea/
+*.iml
+.DS_Store
+
+# ---- Logs ----
+*.log
