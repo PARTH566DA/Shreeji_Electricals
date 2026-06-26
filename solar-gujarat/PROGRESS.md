@@ -5,7 +5,7 @@ Updated as phases complete; committed alongside code.
 
 ## Phase checklist
 - [x] **Phase 1 — Scaffold**: backend (Spring Boot, H2 dev, Swagger, CORS, health), frontend (Vite+Tailwind+Router, hello page), README, ports aligned to 8090.
-- [ ] **Phase 2 — Design system**: tokens, fonts, GlassCard, sky+panels hero (clouds + panel row), Navbar, Footer, responsive shell. Remove health card from hero.
+- [x] **Phase 2 — Design system**: tokens, fonts, GlassCard, sky+panels hero (clouds + panel row via SkyBackdrop), Navbar (glass, mobile menu, lang toggle), Footer, Layout shell, WhatsApp/call buttons. i18next (EN/GU/HI) wired early. Health card removed from public hero.
 - [ ] **Phase 3 — Calculator**: SolarConfig, `/api/calculator/estimate` + subsidy unit test, Calculator UI, ResultCards (count-up), SavingsChart.
 - [ ] **Phase 4 — Bill upload**: Tess4J OCR `/api/bill/analyze`, dropzone UI, editable detected fields → sizing.
 - [ ] **Phase 5 — Survey**: Lead entity, `/api/survey`, validated SurveyForm, confirmation, `/admin/leads` table + CSV export.
@@ -18,10 +18,10 @@ Updated as phases complete; committed alongside code.
 - Backend compiles & `contextLoads` test passes. Frontend Home shows backend health JSON.
 
 ## Last completed step
-Phase 1 scaffold: `pom.xml` (Spring Boot 3.2.5 + Tess4J + springdoc), `SolarApplication`, `HealthController`, `CorsConfig`, `OpenApiConfig`, `application.yml` (dev/prod profiles, port 8090), frontend Vite/Tailwind scaffold with `lib/{api,format,siteConfig,useReducedMotion}.js`, Home placeholder, README.
+Phase 2 design system: `components/{GlassCard,SkyBackdrop,Navbar,Footer,Hero,WhatsAppButton,LanguageToggle,Layout}.jsx`, i18n (`i18n/{index.js,en,gu,hi}.json`), Home shell with section anchor stubs (#benefits #scheme #calculator #process #book-survey), About + AdminLeads placeholder pages + routes. Frontend `npm run build` passes.
 
 ## Next step to do
-Phase 2 — Design system: build `components/GlassCard.jsx`, `Navbar.jsx`, `Footer.jsx`, `Hero.jsx` (sky gradient + drifting clouds + angled panel row along the bottom), and a responsive Home shell. Remove the debug/health card from the public hero.
+Phase 3 — Calculator: backend `SolarConfig` (all constants), `calculator/` DTOs + `CalculatorService` (exact math per brief §4.4) + `CalculatorController` `/api/calculator/estimate`, `/api/discoms`, JUnit subsidy test (1kW→30000, 2kW→60000, 3kW→78000, 5kW→78000). Frontend `components/{Calculator,ResultCards,SavingsChart}.jsx` with count-up + Recharts, replacing the #calculator stub.
 
 ## Decisions / deviations
 - Local JDK is 21; `pom.xml` targets Java 17 release (brief spec) — compiles fine on 21.

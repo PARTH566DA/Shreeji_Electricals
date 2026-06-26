@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "benefits": "Benefits",
+    "calculator": "Calculator",
+    "process": "Process",
+    "about": "About",
+    "bookSurvey": "Book Survey"
+  },
+  "hero": {
+    "headline": "Turn your Gujarat rooftop into a power plant.",
+    "sub": "Govt. subsidy up to ₹78,000 under PM Surya Ghar. We handle MGVCL/DGVCL paperwork, install in a day, and switch you on.",
+    "calcCta": "Calculate my savings",
+    "surveyCta": "Book free survey",
+    "stat1": "₹78,000 max central subsidy",
+    "stat2": "~5.5 sun-hours/day in Gujarat",
+    "stat3": "60–75 day timeline"
+  },
+  "common": {
+    "estimate": "Estimate only",
+    "whatsapp": "Chat on WhatsApp"
+  }
+}
