@@ -7,7 +7,7 @@ Updated as phases complete; committed alongside code.
 - [x] **Phase 1 — Scaffold**: backend (Spring Boot, H2 dev, Swagger, CORS, health), frontend (Vite+Tailwind+Router, hello page), README, ports aligned to 8090.
 - [x] **Phase 2 — Design system**: tokens, fonts, GlassCard, sky+panels hero (clouds + panel row via SkyBackdrop), Navbar (glass, mobile menu, lang toggle), Footer, Layout shell, WhatsApp/call buttons. i18next (EN/GU/HI) wired early. Health card removed from public hero.
 - [x] **Phase 3 — Calculator**: `SolarConfig` (all constants), Discom enum, `/api/calculator/estimate` + `/api/discoms`, exact math, validation + error handler. Subsidy unit test passes (7 tests green). Calculator UI + ResultCards (count-up) + SavingsChart (Recharts, payback marked). Verified live.
-- [ ] **Phase 4 — Bill upload**: Tess4J OCR `/api/bill/analyze`, dropzone UI, editable detected fields → sizing.
+- [x] **Phase 4 — Bill upload**: `bill/{BillAnalysisService,BillController,BillAnalysisResponse}` — Tess4J OCR (+ PDFBox for PDFs), regex extract units/amount/discom, reuse calculator sizing. Degrades gracefully if Tesseract absent (verified live: low-confidence + manual-entry message). Regex tests green (10 total). Frontend `BillUpload.jsx` (react-dropzone, editable fields, "use these values" → calculator preset).
 - [ ] **Phase 5 — Survey**: Lead entity, `/api/survey`, validated SurveyForm, confirmation, `/admin/leads` table + CSV export.
 - [ ] **Phase 6 — Content**: Benefits, Scheme explainer, Process timeline (scroll reveal), About page, FAQ, Testimonials, WhatsApp button.
 - [ ] **Phase 7 — Polish**: i18next EN/GU/HI, reduced-motion, a11y pass, Swagger tidy, README finalised, seed sample leads.
@@ -18,10 +18,10 @@ Updated as phases complete; committed alongside code.
 - Backend compiles & `contextLoads` test passes. Frontend Home shows backend health JSON.
 
 ## Last completed step
-Phase 3 calculator: backend `config/SolarConfig`, `model/Discom`, `calculator/{EstimateRequest,EstimateResponse,CalculatorService,CalculatorController}`, `web/{DiscomController,ApiExceptionHandler}`, test `calculator/CalculatorServiceTest` (7 green). Frontend `components/{Calculator,ResultCards,SavingsChart,CountUp}.jsx`, wired into Home replacing #calculator stub. Verified live: estimate + discoms return correct numbers.
+Phase 4 bill upload: backend `bill/{BillAnalysisService,BillController,BillAnalysisResponse}` + `BillAnalysisServiceTest`; CalculatorService gained public `recommendKw(units)` / `unitsFromBill(bill)`. Frontend `components/BillUpload.jsx`; Home now holds `preset` state shared between BillUpload and Calculator (`preset={units,bill,discom}`). 10 backend tests green; live graceful-degradation verified.
 
 ## Next step to do
-Phase 4 — Bill upload: backend `bill/{BillController,BillAnalysisService}` using Tess4J (graceful degradation if Tesseract absent), regex extract units/amount/discom, reuse `CalculatorService.recommendKw`. Frontend `components/BillUpload.jsx` (react-dropzone) with editable detected fields that feed the Calculator (via presetUnits/presetDiscom props already supported). Add bill section to Home above the calculator.
+Phase 5 — Survey: backend `survey/{Lead (entity, status enum NEW/CONTACTED/SURVEYED/WON/LOST), LeadRepository, SurveyRequest, SurveyController}` — POST /api/survey (validation: 10-digit phone), GET /api/leads (X-Admin-Token guard). Frontend `components/SurveyForm.jsx` (replace #book-survey stub) with confirmation card + WhatsApp deep link; `pages/AdminLeads.jsx` real table + CSV export + token prompt.
 
 ## Decisions / deviations
 - Local JDK is 21; `pom.xml` targets Java 17 release (brief spec) — compiles fine on 21.

@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import Layout from '../components/Layout.jsx'
 import Hero from '../components/Hero.jsx'
 import Calculator from '../components/Calculator.jsx'
+import BillUpload from '../components/BillUpload.jsx'
 
-// Section placeholders are filled in by later phases (Benefits, Bill upload,
-// Process, Testimonials, FAQ, Survey).
+// Section placeholders are filled in by later phases (Benefits, Process,
+// Testimonials, FAQ, Survey).
 function SectionStub({ id, title }) {
   return (
     <section id={id} className="px-3 py-12 scroll-mt-24">
@@ -16,12 +18,20 @@ function SectionStub({ id, title }) {
 }
 
 export default function Home() {
+  const [preset, setPreset] = useState(null)
+
+  function handleUseValues({ units, amount, discom }) {
+    setPreset({ units, bill: amount, discom, _ts: Date.now() })
+    document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <Layout>
       <Hero />
       <SectionStub id="benefits" title="Benefits of solar" />
       <SectionStub id="scheme" title="How PM Surya Ghar works" />
-      <Calculator />
+      <BillUpload onUseValues={handleUseValues} />
+      <Calculator preset={preset} />
       <SectionStub id="process" title="Our process" />
       <SectionStub id="book-survey" title="Book a free survey" />
     </Layout>

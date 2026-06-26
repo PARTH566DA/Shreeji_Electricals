@@ -10,7 +10,7 @@ const FALLBACK_DISCOMS = [
   { code: 'PGVCL', name: 'Paschim Gujarat Vij Company Ltd', area: 'Saurashtra-Kutch' },
 ]
 
-export default function Calculator({ presetUnits, presetDiscom }) {
+export default function Calculator({ preset }) {
   const [discoms, setDiscoms] = useState(FALLBACK_DISCOMS)
   const [inputType, setInputType] = useState('bill')
   const [form, setForm] = useState({
@@ -30,11 +30,16 @@ export default function Calculator({ presetUnits, presetDiscom }) {
 
   // Allow the Bill-upload section to push detected values in.
   useEffect(() => {
-    if (presetUnits != null) {
+    if (!preset) return
+    const patch = preset.discom ? { discom: preset.discom } : {}
+    if (preset.units != null) {
       setInputType('units')
-      setForm((f) => ({ ...f, monthlyUnits: String(presetUnits), ...(presetDiscom ? { discom: presetDiscom } : {}) }))
+      setForm((f) => ({ ...f, monthlyUnits: String(preset.units), ...patch }))
+    } else if (preset.bill != null) {
+      setInputType('bill')
+      setForm((f) => ({ ...f, monthlyBill: String(preset.bill), ...patch }))
     }
-  }, [presetUnits, presetDiscom])
+  }, [preset])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 

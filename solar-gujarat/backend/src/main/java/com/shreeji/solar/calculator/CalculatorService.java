@@ -70,6 +70,16 @@ public class CalculatorService {
         return req.getMonthlyBill() / cfg.getAvgTariffPerUnit();
     }
 
+    /** Recommended size from monthly units alone (used by bill OCR sizing). */
+    public int recommendKw(double monthlyUnits) {
+        return recommendKw(monthlyUnits, null, null);
+    }
+
+    /** Convert a monthly bill (₹) to estimated monthly units. */
+    public double unitsFromBill(double monthlyBill) {
+        return monthlyBill / cfg.getAvgTariffPerUnit();
+    }
+
     /** recommendedKw = round(monthlyUnits / divisor), clamped to caps. */
     int recommendKw(double monthlyUnits, Double roofAreaSqft, Double sanctionedLoadKw) {
         int kw = (int) Math.round(monthlyUnits / cfg.getSizingDivisor());
