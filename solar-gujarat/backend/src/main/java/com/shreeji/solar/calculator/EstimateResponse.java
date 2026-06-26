@@ -1,0 +1,38 @@
+package com.shreeji.solar.calculator;
+
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@Builder
+public class EstimateResponse {
+    private int recommendedKw;
+    private long systemCost;
+    private long centralSubsidy;
+    private long stateTopUp;
+    private boolean stateTopUpEnabled;
+    private long netCost;
+    private long annualUnits;
+    private long annualSavings;
+    private double paybackYears;
+    private double co2TonnesPerYear;
+    private Assumptions assumptions;
+    private String disclaimer;
+    private List<SavingsPoint> savingsSeries;
+
+    @Data
+    @Builder
+    public static class Assumptions {
+        private double tariffPerUnit;
+        private int unitsPerKwYear;
+    }
+
+    @Data
+    @Builder
+    public static class SavingsPoint {
+        private int year;
+        private long cumulativeSavings;
+    }
+}

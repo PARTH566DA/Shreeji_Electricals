@@ -1,8 +1,9 @@
 import Layout from '../components/Layout.jsx'
 import Hero from '../components/Hero.jsx'
+import Calculator from '../components/Calculator.jsx'
 
-// Section placeholders are filled in by later phases (Benefits, Calculator,
-// Bill upload, Process, Testimonials, FAQ, Survey).
+// Section placeholders are filled in by later phases (Benefits, Bill upload,
+// Process, Testimonials, FAQ, Survey).
 function SectionStub({ id, title }) {
   return (
     <section id={id} className="px-3 py-12 scroll-mt-24">
@@ -20,7 +21,7 @@ export default function Home() {
       <Hero />
       <SectionStub id="benefits" title="Benefits of solar" />
       <SectionStub id="scheme" title="How PM Surya Ghar works" />
-      <SectionStub id="calculator" title="Cost & Subsidy Calculator" />
+      <Calculator />
       <SectionStub id="process" title="Our process" />
       <SectionStub id="book-survey" title="Book a free survey" />
     </Layout>

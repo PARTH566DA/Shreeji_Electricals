@@ -6,7 +6,7 @@ Updated as phases complete; committed alongside code.
 ## Phase checklist
 - [x] **Phase 1 — Scaffold**: backend (Spring Boot, H2 dev, Swagger, CORS, health), frontend (Vite+Tailwind+Router, hello page), README, ports aligned to 8090.
 - [x] **Phase 2 — Design system**: tokens, fonts, GlassCard, sky+panels hero (clouds + panel row via SkyBackdrop), Navbar (glass, mobile menu, lang toggle), Footer, Layout shell, WhatsApp/call buttons. i18next (EN/GU/HI) wired early. Health card removed from public hero.
-- [ ] **Phase 3 — Calculator**: SolarConfig, `/api/calculator/estimate` + subsidy unit test, Calculator UI, ResultCards (count-up), SavingsChart.
+- [x] **Phase 3 — Calculator**: `SolarConfig` (all constants), Discom enum, `/api/calculator/estimate` + `/api/discoms`, exact math, validation + error handler. Subsidy unit test passes (7 tests green). Calculator UI + ResultCards (count-up) + SavingsChart (Recharts, payback marked). Verified live.
 - [ ] **Phase 4 — Bill upload**: Tess4J OCR `/api/bill/analyze`, dropzone UI, editable detected fields → sizing.
 - [ ] **Phase 5 — Survey**: Lead entity, `/api/survey`, validated SurveyForm, confirmation, `/admin/leads` table + CSV export.
 - [ ] **Phase 6 — Content**: Benefits, Scheme explainer, Process timeline (scroll reveal), About page, FAQ, Testimonials, WhatsApp button.
@@ -18,10 +18,10 @@ Updated as phases complete; committed alongside code.
 - Backend compiles & `contextLoads` test passes. Frontend Home shows backend health JSON.
 
 ## Last completed step
-Phase 2 design system: `components/{GlassCard,SkyBackdrop,Navbar,Footer,Hero,WhatsAppButton,LanguageToggle,Layout}.jsx`, i18n (`i18n/{index.js,en,gu,hi}.json`), Home shell with section anchor stubs (#benefits #scheme #calculator #process #book-survey), About + AdminLeads placeholder pages + routes. Frontend `npm run build` passes.
+Phase 3 calculator: backend `config/SolarConfig`, `model/Discom`, `calculator/{EstimateRequest,EstimateResponse,CalculatorService,CalculatorController}`, `web/{DiscomController,ApiExceptionHandler}`, test `calculator/CalculatorServiceTest` (7 green). Frontend `components/{Calculator,ResultCards,SavingsChart,CountUp}.jsx`, wired into Home replacing #calculator stub. Verified live: estimate + discoms return correct numbers.
 
 ## Next step to do
-Phase 3 — Calculator: backend `SolarConfig` (all constants), `calculator/` DTOs + `CalculatorService` (exact math per brief §4.4) + `CalculatorController` `/api/calculator/estimate`, `/api/discoms`, JUnit subsidy test (1kW→30000, 2kW→60000, 3kW→78000, 5kW→78000). Frontend `components/{Calculator,ResultCards,SavingsChart}.jsx` with count-up + Recharts, replacing the #calculator stub.
+Phase 4 — Bill upload: backend `bill/{BillController,BillAnalysisService}` using Tess4J (graceful degradation if Tesseract absent), regex extract units/amount/discom, reuse `CalculatorService.recommendKw`. Frontend `components/BillUpload.jsx` (react-dropzone) with editable detected fields that feed the Calculator (via presetUnits/presetDiscom props already supported). Add bill section to Home above the calculator.
 
 ## Decisions / deviations
 - Local JDK is 21; `pom.xml` targets Java 17 release (brief spec) — compiles fine on 21.
