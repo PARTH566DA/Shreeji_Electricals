@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import Layout from '../components/Layout.jsx'
 import { getLeads } from '../lib/api.js'
 import { formatCurrencyINR } from '../lib/format.js'
+import { usePageTitle } from '../lib/usePageTitle.js'
 
 const STATUSES = ['ALL', 'NEW', 'CONTACTED', 'SURVEYED', 'WON', 'LOST']
 
@@ -14,6 +14,7 @@ function toCsv(rows) {
 }
 
 export default function AdminLeads() {
+  usePageTitle('Survey Leads (Admin)')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [leads, setLeads] = useState(null)
@@ -50,7 +51,7 @@ export default function AdminLeads() {
   const filtered = (leads || []).filter((l) => statusFilter === 'ALL' || l.status === statusFilter)
 
   return (
-    <Layout>
+    <>
       <section className="px-3 py-10">
         <div className="mx-auto max-w-6xl">
           <h1 className="text-3xl text-navy">Survey leads</h1>
@@ -117,6 +118,6 @@ export default function AdminLeads() {
           )}
         </div>
       </section>
-    </Layout>
+    </>
   )
 }

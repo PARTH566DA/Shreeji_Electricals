@@ -1,5 +1,6 @@
-import Layout from '../components/Layout.jsx'
+import PageHeader from '../components/PageHeader.jsx'
 import Reveal from '../components/Reveal.jsx'
+import { usePageTitle } from '../lib/usePageTitle.js'
 import { siteConfig } from '../lib/siteConfig.js'
 
 const WHY = [
@@ -10,14 +11,20 @@ const WHY = [
 ]
 
 export default function About() {
+  usePageTitle('About Us')
   return (
-    <Layout>
-      <section className="px-3 py-12">
+    <>
+      <PageHeader
+        eyebrow="About us"
+        title={`About ${siteConfig.companyName}`}
+        subtitle="Rooftop solar for Gujarat homes under PM Surya Ghar and SURYA Gujarat."
+      />
+
+      <section className="px-3 py-8">
         <div className="mx-auto max-w-4xl">
           <Reveal>
             <div className="glass glass-solid p-8">
-              <h1 className="text-3xl text-navy">About {siteConfig.companyName}</h1>
-              <p className="mt-3 text-ink/80">
+              <p className="text-ink/80">
                 We’re a Gujarat-based rooftop solar installer helping homeowners switch to clean power under
                 PM Surya Ghar and SURYA Gujarat. We design the right-sized system for your roof and bill,
                 handle the DISCOM paperwork, install quickly, and stay on for support.
@@ -43,6 +50,6 @@ export default function About() {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   )
 }

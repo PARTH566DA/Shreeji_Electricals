@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import SkyBackdrop from './SkyBackdrop.jsx'
 
+// Home hero band. The sky+panels backdrop is rendered globally by Layout.
 export default function Hero() {
   const { t } = useTranslation()
   return (
-    <section className="relative isolate px-3 pt-10 pb-24 min-h-[88vh] flex items-center">
-      <SkyBackdrop />
+    <section className="relative px-3 pt-10 pb-16 min-h-[82vh] flex items-center">
       <div className="mx-auto max-w-5xl w-full text-center">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -17,8 +17,8 @@ export default function Hero() {
           <h1 className="text-3xl md:text-5xl text-navy leading-tight">{t('hero.headline')}</h1>
           <p className="mt-4 text-base md:text-lg text-ink/80 max-w-2xl mx-auto">{t('hero.sub')}</p>
           <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="#calculator" className="btn-sun text-base">{t('hero.calcCta')}</a>
-            <a href="#book-survey" className="btn-sky text-base">{t('hero.surveyCta')}</a>
+            <Link to="/calculator" className="btn-sun text-base">{t('hero.calcCta')}</Link>
+            <Link to="/book-survey" className="btn-sky text-base">{t('hero.surveyCta')}</Link>
           </div>
         </motion.div>
 

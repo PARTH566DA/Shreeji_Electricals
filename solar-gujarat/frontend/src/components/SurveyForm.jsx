@@ -11,7 +11,7 @@ const EMPTY = {
   discom: 'MGVCL', monthlyBill: '', roofType: 'RCC', preferredDate: '', message: '',
 }
 
-export default function SurveyForm() {
+export default function SurveyForm({ showHeading = true }) {
   const { t } = useTranslation()
   const [form, setForm] = useState(EMPTY)
   const [errors, setErrors] = useState({})
@@ -86,8 +86,12 @@ export default function SurveyForm() {
   return (
     <section id="book-survey" className="px-3 py-12 scroll-mt-24">
       <div className="mx-auto max-w-3xl">
-        <h2 className="text-3xl text-navy text-center">{t('sections.survey')}</h2>
-        <p className="text-muted text-center mt-2">We'll assess your roof, handle the DISCOM paperwork, and give you a clear quote.</p>
+        {showHeading && (
+          <>
+            <h2 className="text-3xl text-navy text-center">{t('sections.survey')}</h2>
+            <p className="text-muted text-center mt-2">We'll assess your roof, handle the DISCOM paperwork, and give you a clear quote.</p>
+          </>
+        )}
 
         <form onSubmit={onSubmit} noValidate className="glass glass-solid p-6 mt-6 grid sm:grid-cols-2 gap-4">
           <div>

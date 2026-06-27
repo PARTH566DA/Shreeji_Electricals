@@ -1,9 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Layout from './components/Layout.jsx'
 import Home from './pages/Home.jsx'
+import CalculatorPage from './pages/CalculatorPage.jsx'
 import About from './pages/About.jsx'
+import BookSurvey from './pages/BookSurvey.jsx'
 import AdminLeads from './pages/AdminLeads.jsx'
+import NotFound from './pages/NotFound.jsx'
 import './i18n/index.js'
 import './index.css'
 
@@ -11,9 +15,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/admin/leads" element={<AdminLeads />} />
+        {/* Shared Layout (Navbar + sky backdrop + Footer + WhatsApp) wraps every page */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/calculator" element={<CalculatorPage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/book-survey" element={<BookSurvey />} />
+          <Route path="/admin/leads" element={<AdminLeads />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,

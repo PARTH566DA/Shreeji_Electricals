@@ -11,7 +11,7 @@ const FALLBACK_DISCOMS = [
   { code: 'PGVCL', name: 'Paschim Gujarat Vij Company Ltd', area: 'Saurashtra-Kutch' },
 ]
 
-export default function Calculator({ preset }) {
+export default function Calculator({ preset, showHeading = true }) {
   const { t } = useTranslation()
   const [discoms, setDiscoms] = useState(FALLBACK_DISCOMS)
   const [inputType, setInputType] = useState('bill')
@@ -74,8 +74,12 @@ export default function Calculator({ preset }) {
   return (
     <section id="calculator" className="px-3 py-12 scroll-mt-24">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-3xl text-navy text-center">{t('sections.calculator')}</h2>
-        <p className="text-muted text-center mt-2">Estimate your system size, subsidy and payback in seconds.</p>
+        {showHeading && (
+          <>
+            <h2 className="text-3xl text-navy text-center">{t('sections.calculator')}</h2>
+            <p className="text-muted text-center mt-2">Estimate your system size, subsidy and payback in seconds.</p>
+          </>
+        )}
 
         <div className="grid lg:grid-cols-5 gap-6 mt-6">
           <form onSubmit={onSubmit} className="glass glass-solid p-6 lg:col-span-2 space-y-4">

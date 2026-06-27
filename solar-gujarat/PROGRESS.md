@@ -12,6 +12,24 @@ Updated as phases complete; committed alongside code.
 - [x] **Phase 6 — Content**: `components/{Reveal,BenefitsGrid,SchemeExplainer,ProcessTimeline,Testimonials,FAQ}.jsx` (Framer Motion `whileInView` via Reveal, reduced-motion safe), full `pages/About.jsx`. Home now composes all real sections; all stubs gone. WhatsApp button done in Phase 2.
 - [x] **Phase 7 — Polish**: i18n expanded (sections + survey labels in EN/GU/HI, applied via `t()`); reduced-motion respected (Reveal/CountUp/CSS); a11y (focus rings, aria, labelled fields); Swagger tags/descriptions on all endpoints; README finalised (endpoint table, languages); `DataSeeder` seeds 3 leads on dev. **All 7 phases complete.**
 
+## Frontend structure (multi-page, React Router)
+Refactored from one long page into routed pages, all wrapped in a shared `Layout`
+(`<Outlet/>` + Navbar + fixed sky-panels `SkyBackdrop` + Footer + WhatsApp + `ScrollToTop`).
+`usePageTitle` sets `document.title` per page.
+
+| Route | Page file | Content |
+|---|---|---|
+| `/` | `pages/Home.jsx` | Hero, Benefits, Scheme explainer, **Calculator teaser → /calculator**, Process timeline, Testimonials, FAQ, **Survey CTA → /book-survey** |
+| `/calculator` | `pages/CalculatorPage.jsx` | `BillUpload` + `Calculator` (count-up ResultCards + 25-yr SavingsChart); bill upload feeds calculator via shared `preset` state |
+| `/about` | `pages/About.jsx` | About content + why-choose-us |
+| `/book-survey` | `pages/BookSurvey.jsx` | `SurveyForm` (validation + confirmation card) |
+| `/admin/leads` | `pages/AdminLeads.jsx` | Protected admin table (Basic auth) + CSV export |
+| `*` | `pages/NotFound.jsx` | 404 |
+
+- Navbar uses `NavLink` (active styling) for Home/Calculator/About + sun "Book Survey" button → `/book-survey`; responsive glass hamburger on mobile.
+- Components (`Calculator`, `BillUpload`, `SurveyForm`, content sections) were **relocated, not duplicated**; `Calculator`/`SurveyForm` gained a `showHeading` prop so dedicated pages avoid double titles under `PageHeader`.
+- No backend or business-logic changes; `VITE_API_BASE` and all API calls unchanged.
+
 ## Current state
 - **Backend** runs on **:8090** — `cd solar-gujarat/backend && mvn spring-boot:run`. Health: `/api/health`, Swagger: `/swagger-ui.html`, H2 console: `/h2-console`.
 - **Frontend** runs on **:5173** — `cd solar-gujarat/frontend && npm install && npm run dev`. `VITE_API_BASE=http://localhost:8090/api`.
