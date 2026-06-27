@@ -124,14 +124,47 @@ public class BillAnalysisService {
     // ---- OCR ----
 
     private String ocr(MultipartFile file) throws Exception {
-        BufferedImage image = toImage(file);
+        BufferedImage image = preprocess(toImage(file));
         Tesseract tess = new Tesseract();
         String datapath = firstExistingTessdata();
         if (datapath != null) {
             tess.setDatapath(datapath);
         }
-        tess.setLanguage("eng");
+        // Read English + Gujarati (labels are in Gujarati script) when guj data is present.
+        tess.setLanguage(resolveLanguages(datapath));
+        tess.setPageSegMode(3);              // fully automatic page segmentation
+        tess.setOcrEngineMode(1);            // LSTM engine
+        tess.setVariable("user_defined_dpi", "300"); // avoids "invalid resolution" guesses on photos
         return tess.doOCR(image);
+    }
+
+    /** "eng+guj" if Gujarati trained data is available, else "eng". */
+    private String resolveLanguages(String datapath) {
+        if (datapath != null && new File(datapath, "guj.traineddata").exists()) {
+            return "eng+guj";
+        }
+        return "eng";
+    }
+
+    /**
+     * Light preprocessing to help OCR on phone photos: upscale small images and
+     * convert to grayscale so Tesseract's internal thresholding works on cleaner input.
+     * (Handwritten / heavily skewed / dot-matrix bills will still need manual entry.)
+     */
+    private BufferedImage preprocess(BufferedImage src) {
+        int targetWidth = 2000;
+        double scale = src.getWidth() < targetWidth ? (double) targetWidth / src.getWidth() : 1.0;
+        scale = Math.min(scale, 3.0);
+        int w = (int) Math.round(src.getWidth() * scale);
+        int h = (int) Math.round(src.getHeight() * scale);
+
+        BufferedImage gray = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+        var g = gray.createGraphics();
+        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.drawImage(src, 0, 0, w, h, null);
+        g.dispose();
+        return gray;
     }
 
     private BufferedImage toImage(MultipartFile file) throws Exception {
@@ -157,13 +190,15 @@ public class BillAnalysisService {
 
     // ---- Extraction ----
 
+    // Labels in English and Gujarati. Gujarati: વપરાશ (usage/consumption), યુનિટ (unit).
     private static final Pattern UNITS = Pattern.compile(
-            "(?:units\\s*consumed|total\\s*units|consumption|net\\s*units|units)\\D{0,12}(\\d{2,5})",
+            "(?:units\\s*consumed|total\\s*units|consumption|net\\s*units|units|વપરાશ|યુનિટ)\\D{0,12}(\\d{2,5})",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern UNITS_KWH = Pattern.compile(
-            "(\\d{2,5})\\s*(?:kwh|units)", Pattern.CASE_INSENSITIVE);
+            "(\\d{2,5})\\s*(?:kwh|units|યુનિટ)", Pattern.CASE_INSENSITIVE);
+    // Gujarati: ચૂકવવાની રકમ / ભરવાની રકમ / કુલ રકમ (amount payable / total).
     private static final Pattern AMOUNT = Pattern.compile(
-            "(?:net\\s*payable|amount\\s*payable|bill\\s*amount|total\\s*payable|net\\s*amount|total)\\D{0,12}(?:rs\\.?|inr|₹)?\\s*([\\d,]{2,9}(?:\\.\\d{1,2})?)",
+            "(?:net\\s*payable|amount\\s*payable|bill\\s*amount|total\\s*payable|net\\s*amount|total|ચૂકવવાની\\s*રકમ|ભરવાની\\s*રકમ|કુલ\\s*રકમ|રકમ)\\D{0,12}(?:rs\\.?|inr|₹|રૂ\\.?)?\\s*([\\d,]{2,9}(?:\\.\\d{1,2})?)",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern DISCOM_CODE = Pattern.compile(
             "\\b(MGVCL|DGVCL|UGVCL|PGVCL)\\b", Pattern.CASE_INSENSITIVE);
@@ -190,10 +225,16 @@ public class BillAnalysisService {
         Matcher m = DISCOM_CODE.matcher(text);
         if (m.find()) return m.group(1).toUpperCase();
         String lower = text.toLowerCase();
-        if (lower.contains("madhya gujarat")) return "MGVCL";
-        if (lower.contains("dakshin gujarat")) return "DGVCL";
-        if (lower.contains("uttar gujarat")) return "UGVCL";
-        if (lower.contains("paschim gujarat")) return "PGVCL";
+        // English transliterations + DISCOM website domains.
+        if (lower.contains("madhya gujarat") || lower.contains("mgvcl.com")) return "MGVCL";
+        if (lower.contains("dakshin gujarat") || lower.contains("dgvcl.com")) return "DGVCL";
+        if (lower.contains("uttar gujarat") || lower.contains("ugvcl.com")) return "UGVCL";
+        if (lower.contains("paschim gujarat") || lower.contains("pgvcl.com")) return "PGVCL";
+        // Gujarati script names.
+        if (text.contains("મધ્ય ગુજરાત")) return "MGVCL";
+        if (text.contains("દક્ષિણ ગુજરાત")) return "DGVCL";
+        if (text.contains("ઉત્તર ગુજરાત")) return "UGVCL";
+        if (text.contains("પશ્ચિમ ગુજરાત")) return "PGVCL";
         return null;
     }
 

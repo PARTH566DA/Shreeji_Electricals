@@ -1,9 +1,9 @@
 // Business specifics — placeholders. Fill these in before go-live (brief §7).
 export const siteConfig = {
-  companyName: 'Shreeji Solar',
+  companyName: 'Shreeji Electricals',
   tagline: 'Rooftop solar across Gujarat',
-  phone: '+91 90000 00000',
-  whatsappNumber: '919000000000', // digits only, country code first (for wa.me)
+  phone: '+91 8141445599',
+  whatsappNumber: '918141445599', // digits only, country code first (for wa.me)
   email: 'hello@shreejisolar.example',
   address: 'Vadodara, Gujarat, India',
   helplineToll: '15555',
