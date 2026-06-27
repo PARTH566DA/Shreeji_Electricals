@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
 import { analyzeBill } from '../lib/api.js'
+import { UploadCloud } from './icons.jsx'
 
 const CONF_LABEL = { high: 'High confidence', medium: 'Partial read', low: 'Low confidence' }
 const CONF_CLS = { high: 'text-leaf', medium: 'text-sun', low: 'text-muted' }
@@ -65,7 +66,7 @@ export default function BillUpload({ onUseValues }) {
           >
             <input {...getInputProps()} aria-label="Upload electricity bill" />
             <div>
-              <div className="text-4xl" aria-hidden="true">📄</div>
+              <UploadCloud className="h-10 w-10 mx-auto text-sky-deep" />
               <p className="mt-3 text-ink font-medium">
                 {loading ? 'Reading your bill…' : isDragActive ? 'Drop the bill here' : 'Drag & drop your bill, or click to choose'}
               </p>

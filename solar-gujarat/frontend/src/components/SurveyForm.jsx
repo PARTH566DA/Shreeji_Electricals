@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { bookSurvey } from '../lib/api.js'
 import { whatsappLink } from '../lib/siteConfig.js'
+import { CheckCircle } from './icons.jsx'
 
 const DISCOMS = ['MGVCL', 'DGVCL', 'UGVCL', 'PGVCL']
 const ROOF_TYPES = ['RCC', 'Metal sheet', 'Tiled', 'Other']
@@ -66,7 +67,7 @@ export default function SurveyForm({ showHeading = true }) {
     return (
       <section id="book-survey" className="px-3 py-12 scroll-mt-24">
         <div className="glass glass-solid mx-auto max-w-xl p-8 text-center">
-          <div className="text-5xl" aria-hidden="true">✅</div>
+          <CheckCircle className="h-14 w-14 mx-auto text-leaf" />
           <h2 className="text-2xl text-navy mt-3">{t('survey.confirmTitle', { name: done.name })}</h2>
           <p className="text-ink/80 mt-2">Ref #{done.id}. {t('survey.confirmBody')}</p>
           <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center">

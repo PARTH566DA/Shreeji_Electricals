@@ -1,4 +1,5 @@
 import { siteConfig } from '../lib/siteConfig.js'
+import { Sun } from './icons.jsx'
 
 export default function Footer() {
   return (
@@ -7,7 +8,7 @@ export default function Footer() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2 font-heading font-extrabold text-navy text-lg">
-              <span aria-hidden="true">☀️</span> {siteConfig.companyName}
+              <Sun className="h-6 w-6 text-sun" /> {siteConfig.companyName}
             </div>
             <p className="mt-2 text-muted">{siteConfig.tagline}. PM Surya Ghar rooftop solar across Gujarat DISCOMs.</p>
           </div>

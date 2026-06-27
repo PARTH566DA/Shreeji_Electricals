@@ -12,6 +12,12 @@ Updated as phases complete; committed alongside code.
 - [x] **Phase 6 — Content**: `components/{Reveal,BenefitsGrid,SchemeExplainer,ProcessTimeline,Testimonials,FAQ}.jsx` (Framer Motion `whileInView` via Reveal, reduced-motion safe), full `pages/About.jsx`. Home now composes all real sections; all stubs gone. WhatsApp button done in Phase 2.
 - [x] **Phase 7 — Polish**: i18n expanded (sections + survey labels in EN/GU/HI, applied via `t()`); reduced-motion respected (Reveal/CountUp/CSS); a11y (focus rings, aria, labelled fields); Swagger tags/descriptions on all endpoints; README finalised (endpoint table, languages); `DataSeeder` seeds 3 leads on dev. **All 7 phases complete.**
 
+## Design refresh (post multi-page)
+- Background is now React Bits **Grainient** (WebGL via `ogl`) — animated grainy white→sky-blue gradient, rendered once in `Layout` behind all pages. Old SVG/photo backdrop removed.
+- All emoji replaced with a custom stroke **SVG icon set** (`components/icons.jsx`).
+- Hero slogan: **"Solar, made simple."** (large, with eyebrow). Copy trimmed site-wide; benefits cut to 6 concise cards.
+- Navbar enlarged (bigger padding/links/logo, Sun icon). Glass made **clearer**: blur 18px→8px, opacity bumped for legibility.
+
 ## Frontend structure (multi-page, React Router)
 Refactored from one long page into routed pages, all wrapped in a shared `Layout`
 (`<Outlet/>` + Navbar + fixed sky-panels `SkyBackdrop` + Footer + WhatsApp + `ScrollToTop`).

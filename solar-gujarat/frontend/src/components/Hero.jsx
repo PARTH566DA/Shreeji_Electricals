@@ -12,10 +12,11 @@ export default function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="glass glass-solid mx-auto max-w-3xl px-6 py-10 md:px-10 md:py-12"
+          className="glass glass-solid mx-auto max-w-3xl px-6 py-12 md:px-10 md:py-16"
         >
-          <h1 className="text-3xl md:text-5xl text-navy leading-tight">{t('hero.headline')}</h1>
-          <p className="mt-4 text-base md:text-lg text-ink/80 max-w-2xl mx-auto">{t('hero.sub')}</p>
+          <p className="text-sky-deep font-semibold tracking-wide uppercase text-sm">{t('hero.eyebrow')}</p>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-navy leading-[1.05] mt-3">{t('hero.headline')}</h1>
+          <p className="mt-5 text-base md:text-lg text-ink/80 max-w-xl mx-auto">{t('hero.sub')}</p>
           <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/calculator" className="btn-sun text-base">{t('hero.calcCta')}</Link>
             <Link to="/book-survey" className="btn-sky text-base">{t('hero.surveyCta')}</Link>

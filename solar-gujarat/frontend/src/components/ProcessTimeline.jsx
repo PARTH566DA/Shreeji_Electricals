@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import Reveal from './Reveal.jsx'
+import { Play } from './icons.jsx'
 
 const STAGES = [
-  { day: 'Day 0', title: 'Survey', text: 'We visit, measure your roof, check shading and your sanctioned load.' },
-  { day: 'Day 1–3', title: 'Design & quote', text: 'You get a clear system design, generation estimate and fixed quote.' },
-  { day: 'Day 4–40', title: 'DISCOM approval', text: 'We file and follow up the MGVCL/DGVCL feasibility and paperwork for you.' },
-  { day: 'Day ~45', title: 'Installation', text: 'Mounting, panels, inverter and wiring — usually done in a single day.' },
-  { day: 'Day ~60', title: 'Switch-on & net meter', text: 'DISCOM inspection, bidirectional meter, and your system goes live.' },
+  { day: 'Day 0', title: 'Survey', text: 'We measure your roof and load.' },
+  { day: 'Day 1–3', title: 'Design & quote', text: 'Clear design and fixed price.' },
+  { day: 'Day 4–40', title: 'DISCOM approval', text: 'We handle the paperwork.' },
+  { day: 'Day ~45', title: 'Installation', text: 'Usually done in one day.' },
+  { day: 'Day ~60', title: 'Switch-on', text: 'Net meter, and you go live.' },
 ]
 
 export default function ProcessTimeline() {
@@ -24,9 +25,11 @@ export default function ProcessTimeline() {
             <Reveal as="li" key={s.title} delay={i * 0.05} className="mb-5 ml-6">
               <span className="absolute -left-[11px] mt-1 h-5 w-5 rounded-full bg-sun border-2 border-white shadow" aria-hidden="true" />
               <div className="glass glass-solid p-4">
-                <div className="text-xs font-semibold text-sky-deep">▶ {s.day}</div>
+                <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-deep">
+                  <Play className="h-3 w-3" /> {s.day}
+                </div>
                 <h3 className="text-navy font-heading font-bold mt-0.5">{s.title}</h3>
-                <p className="text-sm text-ink/80 mt-1">{s.text}</p>
+                <p className="text-sm text-ink/75 mt-1">{s.text}</p>
               </div>
             </Reveal>
           ))}

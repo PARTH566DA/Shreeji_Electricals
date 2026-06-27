@@ -2,12 +2,13 @@ import PageHeader from '../components/PageHeader.jsx'
 import Reveal from '../components/Reveal.jsx'
 import { usePageTitle } from '../lib/usePageTitle.js'
 import { siteConfig } from '../lib/siteConfig.js'
+import { MapPin, Bolt, FileText, Wrench } from '../components/icons.jsx'
 
 const WHY = [
-  { icon: '📍', title: 'Local Gujarat expertise', text: 'We know MGVCL, DGVCL, UGVCL and PGVCL processes inside out.' },
-  { icon: '⚡', title: 'Fast DISCOM processing', text: 'We file and chase your feasibility and net-metering paperwork end to end.' },
-  { icon: '🧾', title: 'End-to-end paperwork', text: 'From portal registration to subsidy DBT — we handle the forms.' },
-  { icon: '🔧', title: 'Post-install support', text: 'Monitoring and service after switch-on, not just at the sale.' },
+  { Icon: MapPin, title: 'Local expertise', text: 'We know every Gujarat DISCOM.' },
+  { Icon: Bolt, title: 'Fast approvals', text: 'We chase the paperwork for you.' },
+  { Icon: FileText, title: 'End-to-end', text: 'Portal to subsidy — all handled.' },
+  { Icon: Wrench, title: 'After-sales', text: 'Support and monitoring post install.' },
 ]
 
 export default function About() {
@@ -25,25 +26,25 @@ export default function About() {
           <Reveal>
             <div className="glass glass-solid p-8">
               <p className="text-ink/80">
-                We’re a Gujarat-based rooftop solar installer helping homeowners switch to clean power under
-                PM Surya Ghar and SURYA Gujarat. We design the right-sized system for your roof and bill,
-                handle the DISCOM paperwork, install quickly, and stay on for support.
+                A Gujarat rooftop-solar installer. We size the right system for your roof, handle the
+                DISCOM paperwork, install fast, and support you after switch-on.
               </p>
               <p className="mt-3 text-sm text-muted">
-                MNRE-empanelled installer across Gujarat DISCOMs (placeholder — confirm and edit before go-live).
-                Team and credentials to be added.
+                MNRE-empanelled across Gujarat DISCOMs (placeholder — confirm before go-live).
               </p>
             </div>
           </Reveal>
 
           <h2 className="text-2xl text-navy mt-10 text-center">Why choose us</h2>
-          <div className="grid sm:grid-cols-2 gap-4 mt-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
             {WHY.map((w, i) => (
               <Reveal key={w.title} delay={i * 0.05}>
                 <div className="glass glass-solid p-5 h-full">
-                  <div className="text-3xl" aria-hidden="true">{w.icon}</div>
-                  <h3 className="text-navy font-heading font-bold mt-2">{w.title}</h3>
-                  <p className="text-sm text-ink/80 mt-1">{w.text}</p>
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-deep/10 text-sky-deep">
+                    <w.Icon className="h-6 w-6" />
+                  </span>
+                  <h3 className="text-navy font-heading font-bold mt-3">{w.title}</h3>
+                  <p className="text-sm text-ink/75 mt-1">{w.text}</p>
                 </div>
               </Reveal>
             ))}
