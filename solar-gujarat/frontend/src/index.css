@@ -41,18 +41,53 @@
 
 @layer components {
   /* Reusable glass card recipe (brief §2). */
+  /* Liquid glass: translucent gradient body, specular top rim, depth shadow,
+     and a soft blue inner glow. Reads as crisp, lively glass over the gradient. */
   .glass {
-    background: var(--glass-bg);
-    /* Crisper, less-frosted glass (clearer than before). */
-    backdrop-filter: blur(8px) saturate(120%);
-    -webkit-backdrop-filter: blur(8px) saturate(120%);
-    border: 1px solid var(--glass-brd);
-    border-radius: 22px;
-    box-shadow: 0 12px 40px -12px rgba(15, 37, 64, 0.22);
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.48) 0%,
+      rgba(255, 255, 255, 0.16) 40%,
+      rgba(255, 255, 255, 0.28) 100%
+    );
+    backdrop-filter: blur(10px) saturate(165%) brightness(1.06);
+    -webkit-backdrop-filter: blur(10px) saturate(165%) brightness(1.06);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 24px;
+    box-shadow:
+      0 10px 34px -10px rgba(15, 37, 64, 0.28),
+      inset 0 1px 1px rgba(255, 255, 255, 0.95),
+      inset 0 -14px 26px -18px rgba(27, 111, 214, 0.28);
+  }
+  /* Glossy reflection sweep across the top — purely decorative, never blocks clicks. */
+  .glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.08) 22%,
+      rgba(255, 255, 255, 0) 45%
+    );
+    mix-blend-mode: screen;
+  }
+  /* Keep card content above the gloss layer. */
+  .glass > * {
+    position: relative;
+    z-index: 1;
   }
   /* More opaque variant for text-heavy cards. */
   .glass-solid {
-    background: rgba(255, 255, 255, 0.66);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.82) 0%,
+      rgba(255, 255, 255, 0.64) 50%,
+      rgba(255, 255, 255, 0.74) 100%
+    );
   }
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold transition focus-visible:outline-none;

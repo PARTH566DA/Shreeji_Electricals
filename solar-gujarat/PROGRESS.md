@@ -17,6 +17,7 @@ Updated as phases complete; committed alongside code.
 - All emoji replaced with a custom stroke **SVG icon set** (`components/icons.jsx`).
 - Hero slogan: **"Solar, made simple."** (large, with eyebrow). Copy trimmed site-wide; benefits cut to 6 concise cards.
 - Navbar enlarged (bigger padding/links/logo, Sun icon). Glass made **clearer**: blur 18px→8px, opacity bumped for legibility.
+- **Liquid-glass** `.glass`: layered translucent gradient, specular top rim (inset sheen + `::before` gloss sweep), depth shadow, soft blue inner glow. (React Bits **FluidGlass** was evaluated but NOT used — it's a self-contained Three.js showcase with its own canvas/images/text and an opaque bg; it can't style DOM cards or refract real page content, so a CSS liquid-glass upgrade was chosen instead.)
 
 ## Frontend structure (multi-page, React Router)
 Refactored from one long page into routed pages, all wrapped in a shared `Layout`
