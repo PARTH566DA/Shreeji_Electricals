@@ -3,6 +3,7 @@ import Layout from '../components/Layout.jsx'
 import Hero from '../components/Hero.jsx'
 import Calculator from '../components/Calculator.jsx'
 import BillUpload from '../components/BillUpload.jsx'
+import SurveyForm from '../components/SurveyForm.jsx'
 
 // Section placeholders are filled in by later phases (Benefits, Process,
 // Testimonials, FAQ, Survey).
@@ -33,7 +34,7 @@ export default function Home() {
       <BillUpload onUseValues={handleUseValues} />
       <Calculator preset={preset} />
       <SectionStub id="process" title="Our process" />
-      <SectionStub id="book-survey" title="Book a free survey" />
+      <SurveyForm />
     </Layout>
   )
 }
