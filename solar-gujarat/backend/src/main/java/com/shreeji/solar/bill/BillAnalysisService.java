@@ -37,10 +37,35 @@ public class BillAnalysisService {
             "/usr/share/tessdata",
     };
 
+    // Dirs where Homebrew / Linux place libtesseract; added to jna.library.path so
+    // Tess4J's native binding can find it (otherwise UnsatisfiedLinkError).
+    private static final String[] NATIVE_LIB_DIRS = {
+            "/opt/homebrew/lib", "/usr/local/lib", "/usr/lib", "/usr/lib/x86_64-linux-gnu",
+    };
+
     private final CalculatorService calculator;
 
     public BillAnalysisService(CalculatorService calculator) {
         this.calculator = calculator;
+        configureNativeLibraryPath();
+    }
+
+    /** Ensure JNA can locate libtesseract before TessAPI initialises (runs at startup). */
+    private static void configureNativeLibraryPath() {
+        StringBuilder path = new StringBuilder(System.getProperty("jna.library.path", ""));
+        for (String dir : NATIVE_LIB_DIRS) {
+            File d = new File(dir);
+            boolean hasLib = new File(d, "libtesseract.dylib").exists()
+                    || new File(d, "libtesseract.so").exists()
+                    || new File(d, "libtesseract.5.dylib").exists();
+            if (d.isDirectory() && hasLib) {
+                if (path.length() > 0) path.append(File.pathSeparator);
+                path.append(dir);
+            }
+        }
+        if (path.length() > 0) {
+            System.setProperty("jna.library.path", path.toString());
+        }
     }
 
     public BillAnalysisResponse analyze(MultipartFile file) {

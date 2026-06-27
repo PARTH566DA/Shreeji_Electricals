@@ -20,8 +20,12 @@ Updated as phases complete; committed alongside code.
 ## Last completed step
 Phase 7 polish — BUILD COMPLETE. i18n applied across sections + survey form; `DataSeeder` (dev) seeds 3 leads (verified live); README finalised. Backend: 10 tests green, all 8 endpoints in Swagger. Frontend builds clean.
 
-## Next step to do
-None — all 7 phases done. Possible future hardening: real admin auth (replace `X-Admin-Token`), code-split the JS bundle (recharts), install Tesseract + tessdata for live OCR, replace placeholder siteConfig/testimonials/credentials, verify subsidy/tariff numbers vs pmsuryaghar.gov.in / GERC / GEDA before go-live.
+## Post-build hardening (done after Phase 7)
+- [x] **Real admin auth** — replaced `X-Admin-Token` with Spring Security HTTP Basic + BCrypt. `SecurityConfig` guards `/api/leads` (role ADMIN), all else public; CORS moved into the security chain (old WebMvc `CorsConfig` removed). Creds via `app.admin.username` / `app.admin.password-hash` (env-overridable). AdminLeads UI now has username+password. Verified live: 401 without/with wrong creds, 200 with `admin:shreeji-admin-2026`.
+- [x] **Live OCR** — Tesseract 5.5.2 installed (brew). `BillAnalysisService` now adds brew/linux lib dirs to `jna.library.path` at startup so Tess4J finds `libtesseract` (was throwing UnsatisfiedLinkError). Verified live: a sample bill returns units=452, amount=2486, MGVCL, high confidence, 3 kW.
+
+## Remaining (optional, before go-live)
+Replace placeholder siteConfig/testimonials/About credentials with real business details; verify subsidy/tariff numbers vs pmsuryaghar.gov.in / GERC / GEDA; optionally code-split the JS bundle (recharts).
 
 ## ⚠️ Known issue / env note
 Frontend `npm run build` (vite/esbuild service mode) HANGS at "transforming…" under the default sandbox — esbuild's long-running service IPC is blocked. Run builds with the sandbox disabled (Bash `dangerouslyDisableSandbox: true`). Standalone esbuild and `mvn` are unaffected.

@@ -16,9 +16,13 @@ server:
 app:
   cors:
     allowed-origins: http://localhost:5173,http://127.0.0.1:5173
-  # MVP admin auth — a hardcoded token guards /api/leads. Harden before prod.
+  # Admin auth for /api/leads — HTTP Basic with a BCrypt-hashed password.
+  # Default password is "shreeji-admin-2026". In production, override the hash via
+  # the APP_ADMIN_PASSWORD_HASH env var (never commit a real one). Generate a hash:
+  #   htpasswd -bnBC 10 "" 'your-password' | tr -d '\n' | sed 's/^://'
   admin:
-    token: shreeji-admin-2026
+    username: ${APP_ADMIN_USERNAME:admin}
+    password-hash: ${APP_ADMIN_PASSWORD_HASH:$2y$10$Humfo2FFKHf4ZnMAIhq.RuB7FyXPKiXvPHgKI4LNwFLlaKkCYYnY.}
 
 springdoc:
   swagger-ui:

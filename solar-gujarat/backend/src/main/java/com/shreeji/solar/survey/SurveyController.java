@@ -2,9 +2,9 @@ package com.shreeji.solar.survey;
 
 import com.shreeji.solar.model.Discom;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +18,9 @@ import java.util.Map;
 public class SurveyController {
 
     private final LeadRepository repo;
-    private final String adminToken;
 
-    public SurveyController(LeadRepository repo, @Value("${app.admin.token}") String adminToken) {
+    public SurveyController(LeadRepository repo) {
         this.repo = repo;
-        this.adminToken = adminToken;
     }
 
     @Operation(summary = "Book a survey (creates a Lead)")
@@ -47,15 +45,11 @@ public class SurveyController {
         ));
     }
 
-    @Operation(summary = "List captured leads (admin) — requires X-Admin-Token header")
+    @Operation(summary = "List captured leads (admin only — HTTP Basic auth)",
+            security = @SecurityRequirement(name = "basicAuth"))
     @GetMapping("/leads")
-    public ResponseEntity<?> leads(@RequestHeader(value = "X-Admin-Token", required = false) String token) {
-        if (token == null || !token.equals(adminToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "unauthorized", "message", "Valid X-Admin-Token required"));
-        }
-        List<Lead> leads = repo.findAllByOrderByCreatedAtDesc();
-        return ResponseEntity.ok(leads);
+    public List<Lead> leads() {
+        return repo.findAllByOrderByCreatedAtDesc();
     }
 
     @Operation(summary = "Gujarat DISCOM options (for forms)")

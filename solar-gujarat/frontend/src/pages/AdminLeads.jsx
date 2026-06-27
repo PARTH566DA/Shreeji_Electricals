@@ -14,7 +14,8 @@ function toCsv(rows) {
 }
 
 export default function AdminLeads() {
-  const [token, setToken] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [leads, setLeads] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -25,10 +26,10 @@ export default function AdminLeads() {
     setError(null)
     setLoading(true)
     try {
-      const data = await getLeads(token)
+      const data = await getLeads(username, password)
       setLeads(data)
     } catch (err) {
-      setError(err.response?.status === 401 ? 'Invalid admin token.' : (err.message || 'Failed to load'))
+      setError(err.response?.status === 401 ? 'Invalid username or password.' : (err.message || 'Failed to load'))
       setLeads(null)
     } finally {
       setLoading(false)
@@ -53,15 +54,20 @@ export default function AdminLeads() {
       <section className="px-3 py-10">
         <div className="mx-auto max-w-6xl">
           <h1 className="text-3xl text-navy">Survey leads</h1>
-          <p className="text-muted mt-1 text-sm">MVP admin — enter the admin token to view captured leads. Harden auth before production.</p>
+          <p className="text-muted mt-1 text-sm">Sign in with your admin username and password to view captured leads.</p>
 
           <form onSubmit={load} className="glass glass-solid p-4 mt-4 flex flex-wrap gap-3 items-end">
-            <div className="flex-1 min-w-[220px]">
-              <label className="block text-sm font-medium text-ink mb-1" htmlFor="token">Admin token</label>
-              <input id="token" type="password" value={token} onChange={(e) => setToken(e.target.value)}
-                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 outline-none" placeholder="X-Admin-Token" />
+            <div className="flex-1 min-w-[160px]">
+              <label className="block text-sm font-medium text-ink mb-1" htmlFor="username">Username</label>
+              <input id="username" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 outline-none" placeholder="admin" />
             </div>
-            <button type="submit" className="btn-sky" disabled={loading || !token}>{loading ? 'Loading…' : 'Load leads'}</button>
+            <div className="flex-1 min-w-[160px]">
+              <label className="block text-sm font-medium text-ink mb-1" htmlFor="password">Password</label>
+              <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 outline-none" placeholder="••••••••" />
+            </div>
+            <button type="submit" className="btn-sky" disabled={loading || !username || !password}>{loading ? 'Loading…' : 'Sign in'}</button>
             {leads && <button type="button" className="btn-ghost" onClick={download}>Export CSV</button>}
           </form>
           {error && <p className="text-red-600 mt-3">{error}</p>}

@@ -16,7 +16,7 @@ export const analyzeBill = (file) => {
     .then((r) => r.data)
 }
 export const bookSurvey = (payload) => api.post('/survey', payload).then((r) => r.data)
-export const getLeads = (token) =>
-  api.get('/leads', { headers: { 'X-Admin-Token': token } }).then((r) => r.data)
+export const getLeads = (username, password) =>
+  api.get('/leads', { auth: { username, password } }).then((r) => r.data)
 
 export default api

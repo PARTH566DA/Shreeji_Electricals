@@ -16,8 +16,10 @@ solar-gujarat/
 ## Prerequisites
 - JDK 17+ (tested on 21), Maven 3.9+
 - Node 18+ (tested on 22), npm
-- (Phase 4 OCR only) Tesseract installed locally: `brew install tesseract` — the bill
-  endpoint degrades gracefully and lets users type values if OCR is unavailable.
+- For bill OCR: Tesseract installed locally (`brew install tesseract`). The backend
+  auto-adds `/opt/homebrew/lib` (and other common dirs) to `jna.library.path` so Tess4J
+  finds `libtesseract`. If Tesseract is absent the bill endpoint degrades gracefully and
+  lets users type values manually.
 
 ## Run the backend (port 8090)
 ```bash
@@ -64,9 +66,17 @@ EN / ગુજરાતી / हिन्दी via i18next — toggle in the na
 headings and the survey form are translated; body copy defaults to English.
 
 ## Admin leads
-`/admin/leads` in the app lists captured survey leads. MVP auth: a hardcoded admin
-token (`app.admin.token` in `application.yml`, default `shreeji-admin-2026`) sent as
-the `X-Admin-Token` header. **Harden before production.**
+`/admin/leads` in the app lists captured survey leads, guarded by **HTTP Basic auth**
+(Spring Security) with a **BCrypt-hashed** password — only `/api/leads` requires auth;
+everything else is public.
+
+- Default credentials: username `admin`, password `shreeji-admin-2026`.
+- Configure via `app.admin.username` / `app.admin.password-hash` in `application.yml`,
+  or override with env vars in production (recommended — never commit a real hash):
+  ```bash
+  export APP_ADMIN_USERNAME=admin
+  export APP_ADMIN_PASSWORD_HASH="$(htpasswd -bnBC 10 '' 'your-strong-password' | tr -d '\n' | sed 's/^://')"
+  ```
 
 ## Notes / disclaimers
 Subsidy, tariff and cost numbers are estimates and live in one config
