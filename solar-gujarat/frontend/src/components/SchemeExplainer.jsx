@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import Reveal from './Reveal.jsx'
 import { siteConfig } from '../lib/siteConfig.js'
 
@@ -10,11 +11,12 @@ const STEPS = [
 ]
 
 export default function SchemeExplainer() {
+  const { t } = useTranslation()
   return (
     <section id="scheme" className="px-3 py-14 scroll-mt-24">
       <div className="mx-auto max-w-5xl">
         <Reveal>
-          <h2 className="text-3xl text-navy text-center">How PM Surya Ghar works</h2>
+          <h2 className="text-3xl text-navy text-center">{t('sections.scheme')}</h2>
           <p className="text-muted text-center mt-2">The official flow for Gujarat homeowners.</p>
         </Reveal>
 

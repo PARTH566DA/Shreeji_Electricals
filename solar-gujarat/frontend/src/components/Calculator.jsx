@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { estimate, getDiscoms } from '../lib/api.js'
 import ResultCards from './ResultCards.jsx'
 
@@ -11,6 +12,7 @@ const FALLBACK_DISCOMS = [
 ]
 
 export default function Calculator({ preset }) {
+  const { t } = useTranslation()
   const [discoms, setDiscoms] = useState(FALLBACK_DISCOMS)
   const [inputType, setInputType] = useState('bill')
   const [form, setForm] = useState({
@@ -72,7 +74,7 @@ export default function Calculator({ preset }) {
   return (
     <section id="calculator" className="px-3 py-12 scroll-mt-24">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-3xl text-navy text-center">Cost &amp; Subsidy Calculator</h2>
+        <h2 className="text-3xl text-navy text-center">{t('sections.calculator')}</h2>
         <p className="text-muted text-center mt-2">Estimate your system size, subsidy and payback in seconds.</p>
 
         <div className="grid lg:grid-cols-5 gap-6 mt-6">

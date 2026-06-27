@@ -15,6 +15,33 @@
     "stat2": "~5.5 sun-hours/day in Gujarat",
     "stat3": "60–75 day timeline"
   },
+  "sections": {
+    "benefits": "Why go solar in Gujarat",
+    "scheme": "How PM Surya Ghar works",
+    "bill": "Upload your bill, we'll size it for you",
+    "calculator": "Cost & Subsidy Calculator",
+    "process": "Watch your roof come online",
+    "testimonials": "Gujarat homes, switched on",
+    "faq": "Frequently asked questions",
+    "survey": "Book a free survey"
+  },
+  "survey": {
+    "name": "Name",
+    "phone": "Mobile number",
+    "email": "Email",
+    "city": "City",
+    "address": "Full address",
+    "discom": "DISCOM",
+    "roofType": "Roof type",
+    "monthlyBill": "Approx. monthly bill (₹)",
+    "preferredDate": "Preferred date",
+    "message": "Message",
+    "submit": "Book my free survey",
+    "submitting": "Booking…",
+    "confirmTitle": "Thanks, {{name}}!",
+    "confirmBody": "We'll call you within 48 hours.",
+    "another": "Book another"
+  },
   "common": {
     "estimate": "Estimate only",
     "whatsapp": "Chat on WhatsApp"

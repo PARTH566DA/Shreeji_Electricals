@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { useTranslation } from 'react-i18next'
 import { analyzeBill } from '../lib/api.js'
 
 const CONF_LABEL = { high: 'High confidence', medium: 'Partial read', low: 'Low confidence' }
@@ -7,6 +8,7 @@ const CONF_CLS = { high: 'text-leaf', medium: 'text-sun', low: 'text-muted' }
 
 // Bill upload → OCR → editable detected fields that feed the calculator (brief §4.5).
 export default function BillUpload({ onUseValues }) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
@@ -51,7 +53,7 @@ export default function BillUpload({ onUseValues }) {
   return (
     <section id="bill-upload" className="px-3 py-12 scroll-mt-24">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-3xl text-navy text-center">Upload your bill, we'll size it for you</h2>
+        <h2 className="text-3xl text-navy text-center">{t('sections.bill')}</h2>
         <p className="text-muted text-center mt-2">JPG, PNG or PDF of any Gujarat DISCOM bill. We read the units — you confirm.</p>
 
         <div className="grid lg:grid-cols-2 gap-6 mt-6">

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Reveal from './Reveal.jsx'
 
 const FAQS = [
@@ -29,12 +30,13 @@ function Item({ q, a, open, onToggle, id }) {
 }
 
 export default function FAQ() {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(0)
   return (
     <section id="faq" className="px-3 py-14 scroll-mt-24">
       <div className="mx-auto max-w-3xl">
         <Reveal>
-          <h2 className="text-3xl text-navy text-center">Frequently asked questions</h2>
+          <h2 className="text-3xl text-navy text-center">{t('sections.faq')}</h2>
         </Reveal>
         <div className="mt-8 space-y-3">
           {FAQS.map((f, i) => (

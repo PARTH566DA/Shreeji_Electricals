@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Reveal from './Reveal.jsx'
 
 // Placeholder Gujarat customers — replace with real testimonials before go-live.
@@ -10,6 +11,7 @@ const ITEMS = [
 ]
 
 export default function Testimonials() {
+  const { t } = useTranslation()
   const [i, setI] = useState(0)
   const item = ITEMS[i]
   const go = (d) => setI((p) => (p + d + ITEMS.length) % ITEMS.length)
@@ -18,7 +20,7 @@ export default function Testimonials() {
     <section id="testimonials" className="px-3 py-14 scroll-mt-24">
       <div className="mx-auto max-w-3xl">
         <Reveal>
-          <h2 className="text-3xl text-navy text-center">Gujarat homes, switched on</h2>
+          <h2 className="text-3xl text-navy text-center">{t('sections.testimonials')}</h2>
         </Reveal>
         <Reveal delay={0.05}>
           <div className="glass glass-solid p-8 mt-6 text-center">

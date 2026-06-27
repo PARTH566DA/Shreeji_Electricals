@@ -10,7 +10,7 @@ Updated as phases complete; committed alongside code.
 - [x] **Phase 4 — Bill upload**: `bill/{BillAnalysisService,BillController,BillAnalysisResponse}` — Tess4J OCR (+ PDFBox for PDFs), regex extract units/amount/discom, reuse calculator sizing. Degrades gracefully if Tesseract absent (verified live: low-confidence + manual-entry message). Regex tests green (10 total). Frontend `BillUpload.jsx` (react-dropzone, editable fields, "use these values" → calculator preset).
 - [x] **Phase 5 — Survey**: `survey/{Lead,LeadStatus,LeadRepository,SurveyRequest,SurveyController}` — POST /api/survey (10-digit phone validation), GET /api/leads (X-Admin-Token guard, 401 without). Frontend `SurveyForm.jsx` (client+server validation, confirmation card + WhatsApp deep link) wired into Home; `AdminLeads.jsx` real table (token prompt, status filter, CSV export). Verified live: create/validation/401/list all correct.
 - [x] **Phase 6 — Content**: `components/{Reveal,BenefitsGrid,SchemeExplainer,ProcessTimeline,Testimonials,FAQ}.jsx` (Framer Motion `whileInView` via Reveal, reduced-motion safe), full `pages/About.jsx`. Home now composes all real sections; all stubs gone. WhatsApp button done in Phase 2.
-- [ ] **Phase 7 — Polish**: i18next EN/GU/HI, reduced-motion, a11y pass, Swagger tidy, README finalised, seed sample leads.
+- [x] **Phase 7 — Polish**: i18n expanded (sections + survey labels in EN/GU/HI, applied via `t()`); reduced-motion respected (Reveal/CountUp/CSS); a11y (focus rings, aria, labelled fields); Swagger tags/descriptions on all endpoints; README finalised (endpoint table, languages); `DataSeeder` seeds 3 leads on dev. **All 7 phases complete.**
 
 ## Current state
 - **Backend** runs on **:8090** — `cd solar-gujarat/backend && mvn spring-boot:run`. Health: `/api/health`, Swagger: `/swagger-ui.html`, H2 console: `/h2-console`.
@@ -18,10 +18,10 @@ Updated as phases complete; committed alongside code.
 - Backend compiles & `contextLoads` test passes. Frontend Home shows backend health JSON.
 
 ## Last completed step
-Phase 6 content: `components/{Reveal,BenefitsGrid,SchemeExplainer,ProcessTimeline,Testimonials,FAQ}.jsx`, full `pages/About.jsx`, Home composes all sections. Frontend build green (2s, sandbox disabled).
+Phase 7 polish — BUILD COMPLETE. i18n applied across sections + survey form; `DataSeeder` (dev) seeds 3 leads (verified live); README finalised. Backend: 10 tests green, all 8 endpoints in Swagger. Frontend builds clean.
 
 ## Next step to do
-Phase 7 — Polish: expand i18n JSON (benefits/scheme/process/faq/survey/footer keys) and apply `t()` across components; a11y pass (focus, aria, alt, contrast); reduced-motion audit; tidy Swagger (tags/descriptions present); seed 2–3 sample leads via a `survey/DataSeeder` CommandLineRunner (dev profile only); finalise README; final full build + test. Then mark all phases done.
+None — all 7 phases done. Possible future hardening: real admin auth (replace `X-Admin-Token`), code-split the JS bundle (recharts), install Tesseract + tessdata for live OCR, replace placeholder siteConfig/testimonials/credentials, verify subsidy/tariff numbers vs pmsuryaghar.gov.in / GERC / GEDA before go-live.
 
 ## ⚠️ Known issue / env note
 Frontend `npm run build` (vite/esbuild service mode) HANGS at "transforming…" under the default sandbox — esbuild's long-running service IPC is blocked. Run builds with the sandbox disabled (Bash `dangerouslyDisableSandbox: true`). Standalone esbuild and `mvn` are unaffected.

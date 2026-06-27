@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import Reveal from './Reveal.jsx'
 
 const STAGES = [
@@ -9,11 +10,12 @@ const STAGES = [
 ]
 
 export default function ProcessTimeline() {
+  const { t } = useTranslation()
   return (
     <section id="process" className="px-3 py-14 scroll-mt-24">
       <div className="mx-auto max-w-3xl">
         <Reveal>
-          <h2 className="text-3xl text-navy text-center">Watch your roof come online</h2>
+          <h2 className="text-3xl text-navy text-center">{t('sections.process')}</h2>
           <p className="text-muted text-center mt-2">Five clean stages, typically 60–75 days end to end.</p>
         </Reveal>
 

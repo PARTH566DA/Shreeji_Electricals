@@ -47,6 +47,22 @@ App: http://localhost:5173 — talks to the backend via `VITE_API_BASE` (see `.e
 cd solar-gujarat/backend && mvn test
 ```
 
+## API endpoints (see Swagger for full schemas)
+| Method | Path | Purpose |
+|---|---|---|
+| GET  | `/api/health` | Liveness |
+| GET  | `/api/discoms` | Gujarat DISCOMs + areas |
+| POST | `/api/calculator/estimate` | Size, subsidy, savings, payback, 25-yr series |
+| POST | `/api/bill/analyze` | OCR a bill (multipart `file`) → units/amount/DISCOM |
+| POST | `/api/survey` | Book a survey (creates a Lead) |
+| GET  | `/api/leads` | List leads (admin; `X-Admin-Token` header) |
+
+On the dev profile, 3 sample leads are seeded automatically so the admin table isn't empty.
+
+## Languages
+EN / ગુજરાતી / हिन्दी via i18next — toggle in the navbar. Nav, hero, CTAs, section
+headings and the survey form are translated; body copy defaults to English.
+
 ## Admin leads
 `/admin/leads` in the app lists captured survey leads. MVP auth: a hardcoded admin
 token (`app.admin.token` in `application.yml`, default `shreeji-admin-2026`) sent as

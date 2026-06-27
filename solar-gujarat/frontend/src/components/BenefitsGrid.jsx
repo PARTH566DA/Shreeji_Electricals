@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import Reveal from './Reveal.jsx'
 
 const BENEFITS = [
@@ -12,11 +13,12 @@ const BENEFITS = [
 ]
 
 export default function BenefitsGrid() {
+  const { t } = useTranslation()
   return (
     <section id="benefits" className="px-3 py-14 scroll-mt-24">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <h2 className="text-3xl text-navy text-center">Why go solar in Gujarat</h2>
+          <h2 className="text-3xl text-navy text-center">{t('sections.benefits')}</h2>
           <p className="text-muted text-center mt-2">Real, specific reasons — no jargon.</p>
         </Reveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
