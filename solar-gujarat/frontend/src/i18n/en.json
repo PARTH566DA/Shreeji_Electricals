@@ -8,14 +8,10 @@
     "bookSurvey": "Book Survey"
   },
   "hero": {
-    "eyebrow": "PM Surya Ghar · Gujarat",
     "headline": "Solar, made simple.",
-    "sub": "Rooftop solar for Gujarat homes — up to ₹78,000 subsidy. We handle the paperwork.",
     "calcCta": "Calculate savings",
     "surveyCta": "Book free survey",
-    "stat1": "₹78,000 max central subsidy",
-    "stat2": "~5.5 sun-hours/day in Gujarat",
-    "stat3": "60–75 day timeline"
+    "installed": "Over 500 systems installed"
   },
   "sections": {
     "benefits": "Why go solar in Gujarat",

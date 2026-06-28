@@ -14,25 +14,21 @@ export default function Hero() {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="glass glass-solid mx-auto max-w-3xl px-6 py-12 md:px-10 md:py-16"
         >
-          <p className="text-sky-deep font-semibold tracking-wide uppercase text-sm">{t('hero.eyebrow')}</p>
-          <h1 className="text-5xl md:text-7xl font-extrabold text-navy leading-[1.05] mt-3">{t('hero.headline')}</h1>
-          <p className="mt-5 text-base md:text-lg text-ink/80 max-w-xl mx-auto">{t('hero.sub')}</p>
-          <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
+          <h1 className="text-5xl md:text-7xl font-extrabold text-navy leading-[1.05]">{t('hero.headline')}</h1>
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/calculator" className="btn-sun text-base">{t('hero.calcCta')}</Link>
             <Link to="/book-survey" className="btn-sky text-base">{t('hero.surveyCta')}</Link>
           </div>
         </motion.div>
 
-        {/* Glass stat strip */}
+        {/* Glass stat strip — single social-proof stat */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
-          className="glass mx-auto mt-5 max-w-3xl px-5 py-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-navy font-semibold"
+          className="glass mx-auto mt-5 inline-block px-7 py-3 text-base md:text-lg text-navy font-semibold"
         >
-          <span>{t('hero.stat1')}</span>
-          <span className="sm:border-x sm:border-white/40">{t('hero.stat2')}</span>
-          <span>{t('hero.stat3')}</span>
+          {t('hero.installed')}
         </motion.div>
       </div>
     </section>

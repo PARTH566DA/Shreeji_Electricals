@@ -39,7 +39,6 @@ export default function Testimonials() {
             </div>
           </div>
         </Reveal>
-        <p className="text-center text-xs text-muted mt-3">Illustrative examples; replace with verified customer stories.</p>
       </div>
     </section>
   )

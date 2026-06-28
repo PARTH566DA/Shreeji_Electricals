@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import Hero from '../components/Hero.jsx'
 import BenefitsGrid from '../components/BenefitsGrid.jsx'
 import SchemeExplainer from '../components/SchemeExplainer.jsx'
-import ProcessTimeline from '../components/ProcessTimeline.jsx'
 import Testimonials from '../components/Testimonials.jsx'
 import FAQ from '../components/FAQ.jsx'
 import Reveal from '../components/Reveal.jsx'
@@ -51,7 +50,6 @@ export default function Home() {
       <BenefitsGrid />
       <SchemeExplainer />
       <CalculatorTeaser />
-      <ProcessTimeline />
       <Testimonials />
       <FAQ />
       <SurveyCTA />
