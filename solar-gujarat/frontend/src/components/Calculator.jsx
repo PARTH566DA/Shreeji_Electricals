@@ -11,9 +11,10 @@ const FALLBACK_DISCOMS = [
   { code: 'PGVCL', name: 'Paschim Gujarat Vij Company Ltd', area: 'Saurashtra-Kutch' },
 ]
 
-export default function Calculator({ preset, showHeading = true }) {
+export default function Calculator({ preset, showHeading = true, defaultType = 'residential' }) {
   const { t } = useTranslation()
   const [discoms, setDiscoms] = useState(FALLBACK_DISCOMS)
+  const [consumerType, setConsumerType] = useState(defaultType)
   const [inputType, setInputType] = useState('bill')
   const [form, setForm] = useState({
     monthlyBill: '',
@@ -52,6 +53,7 @@ export default function Calculator({ preset, showHeading = true }) {
     try {
       const payload = {
         inputType,
+        consumerType: consumerType.toUpperCase(),
         discom: form.discom,
         ...(inputType === 'bill'
           ? { monthlyBill: Number(form.monthlyBill) }
@@ -83,6 +85,34 @@ export default function Calculator({ preset, showHeading = true }) {
 
         <div className="grid lg:grid-cols-5 gap-6 mt-6">
           <form onSubmit={onSubmit} className="glass glass-solid p-6 lg:col-span-2 space-y-4">
+            {/* Residential / Commercial toggle */}
+            <div>
+              <span className={labelCls}>I'm a</span>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { key: 'residential', label: 'Home / residential' },
+                  { key: 'commercial', label: 'Business / commercial' },
+                ].map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => { setConsumerType(c.key); setResult(null) }}
+                    aria-pressed={consumerType === c.key}
+                    className={`rounded-xl px-3 py-2.5 text-sm font-medium border transition ${
+                      consumerType === c.key
+                        ? 'bg-sky-deep text-white border-sky-deep'
+                        : 'bg-white/60 text-ink border-white/60 hover:bg-white'
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              {consumerType === 'commercial' && (
+                <p className="text-xs text-muted mt-1.5">No PM Surya Ghar subsidy for businesses — but accelerated-depreciation tax benefit applies.</p>
+              )}
+            </div>
+
             {/* Bill / units toggle */}
             <div className="inline-flex rounded-full bg-white/60 p-0.5 text-sm">
               {['bill', 'units'].map((t) => (

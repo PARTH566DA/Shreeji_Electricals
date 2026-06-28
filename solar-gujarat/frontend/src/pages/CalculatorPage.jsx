@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import PageHeader from '../components/PageHeader.jsx'
 import BillUpload from '../components/BillUpload.jsx'
 import Calculator from '../components/Calculator.jsx'
@@ -6,8 +7,11 @@ import { usePageTitle } from '../lib/usePageTitle.js'
 
 // Calculator + bill-upload sizing live together on one page. Bill upload feeds
 // detected values into the calculator via shared `preset` state (unchanged logic).
+// `?type=commercial` opens the calculator in commercial mode.
 export default function CalculatorPage() {
   usePageTitle('Solar Savings Calculator')
+  const [params] = useSearchParams()
+  const defaultType = params.get('type') === 'commercial' ? 'commercial' : 'residential'
   const [preset, setPreset] = useState(null)
 
   function handleUseValues({ units, amount, discom }) {
@@ -18,12 +22,12 @@ export default function CalculatorPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PM Surya Ghar"
+        eyebrow="Residential & commercial"
         title="Solar Savings Calculator"
-        subtitle="Estimate your system size, subsidy, savings and payback — or upload your electricity bill and we'll size it for you."
+        subtitle="Pick home or business, enter your bill or units, and see system size, subsidy or tax benefit, savings and payback. Or upload your bill and we'll size it."
       />
       <BillUpload onUseValues={handleUseValues} />
-      <Calculator preset={preset} showHeading={false} />
+      <Calculator preset={preset} showHeading={false} defaultType={defaultType} />
     </>
   )
 }

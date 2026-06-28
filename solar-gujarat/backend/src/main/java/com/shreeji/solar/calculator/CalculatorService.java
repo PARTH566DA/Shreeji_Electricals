@@ -13,9 +13,14 @@ import java.util.List;
 @Service
 public class CalculatorService {
 
-    private static final String DISCLAIMER =
+    private static final String DISCLAIMER_RESIDENTIAL =
             "Estimates only, based on average Gujarat generation and tariffs. Final figures depend " +
             "on your roof, DISCOM tariff slab, and live subsidy rules.";
+
+    private static final String DISCLAIMER_COMMERCIAL =
+            "Estimates only. Commercial/industrial systems are not eligible for PM Surya Ghar subsidy; " +
+            "the accelerated-depreciation figure is an indicative first-year tax saving — confirm with your " +
+            "chartered accountant. Final figures depend on your roof, load, GERC tariff and net-metering rules.";
 
     private final SolarConfig cfg;
 
@@ -24,40 +29,48 @@ public class CalculatorService {
     }
 
     public EstimateResponse estimate(EstimateRequest req) {
-        double monthlyUnits = deriveMonthlyUnits(req);
-        int recommendedKw = recommendKw(monthlyUnits, req.getRoofAreaSqft(), req.getSanctionedLoadKw());
+        boolean commercial = req.getConsumerType() == ConsumerType.COMMERCIAL;
+        double tariff = commercial ? cfg.getCommercialTariffPerUnit() : cfg.getAvgTariffPerUnit();
+        int maxKw = commercial ? cfg.getMaxCommercialKw() : cfg.getMaxResidentialKw();
 
-        long centralSubsidy = centralSubsidy(recommendedKw);
-        long stateTopUp = stateTopUp(recommendedKw);
+        double monthlyUnits = deriveMonthlyUnits(req, tariff);
+        int recommendedKw = recommendKw(monthlyUnits, req.getRoofAreaSqft(), req.getSanctionedLoadKw(), maxKw);
 
-        long systemCost = roundTo100((long) recommendedKw * cfg.costPerKw(recommendedKw));
-        long netCost = roundTo100(systemCost - centralSubsidy - stateTopUp);
+        long centralSubsidy = commercial ? 0 : centralSubsidy(recommendedKw);
+        long stateTopUp = commercial ? 0 : stateTopUp(recommendedKw);
+
+        int costPerKw = commercial ? cfg.commercialCostPerKw(recommendedKw) : cfg.costPerKw(recommendedKw);
+        long systemCost = roundTo100((long) recommendedKw * costPerKw);
+        long adBenefit = commercial ? roundTo100(cfg.acceleratedDepreciationBenefit(systemCost)) : 0;
+        long netCost = roundTo100(systemCost - centralSubsidy - stateTopUp - adBenefit);
         long annualUnits = (long) recommendedKw * cfg.getUnitsPerKwPerYear();
-        long annualSavings = roundTo100(Math.round(annualUnits * cfg.getAvgTariffPerUnit()));
+        long annualSavings = roundTo100(Math.round(annualUnits * tariff));
         double paybackYears = annualSavings > 0 ? round1((double) netCost / annualSavings) : 0;
         double co2 = round1(recommendedKw * cfg.getCo2TonnesPerKwYear());
 
         return EstimateResponse.builder()
+                .consumerType(req.getConsumerType().name())
                 .recommendedKw(recommendedKw)
                 .systemCost(systemCost)
                 .centralSubsidy(centralSubsidy)
                 .stateTopUp(stateTopUp)
-                .stateTopUpEnabled(cfg.isStateTopUpEnabled())
+                .stateTopUpEnabled(!commercial && cfg.isStateTopUpEnabled())
+                .acceleratedDepreciationBenefit(adBenefit)
                 .netCost(netCost)
                 .annualUnits(annualUnits)
                 .annualSavings(annualSavings)
                 .paybackYears(paybackYears)
                 .co2TonnesPerYear(co2)
                 .assumptions(EstimateResponse.Assumptions.builder()
-                        .tariffPerUnit(cfg.getAvgTariffPerUnit())
+                        .tariffPerUnit(tariff)
                         .unitsPerKwYear(cfg.getUnitsPerKwPerYear())
                         .build())
-                .disclaimer(DISCLAIMER)
+                .disclaimer(commercial ? DISCLAIMER_COMMERCIAL : DISCLAIMER_RESIDENTIAL)
                 .savingsSeries(savingsSeries(annualSavings))
                 .build();
     }
 
-    double deriveMonthlyUnits(EstimateRequest req) {
+    double deriveMonthlyUnits(EstimateRequest req, double tariff) {
         if (req.getInputType() == EstimateRequest.InputType.units) {
             if (req.getMonthlyUnits() == null) {
                 throw new IllegalArgumentException("monthlyUnits is required when inputType=units");
@@ -67,23 +80,23 @@ public class CalculatorService {
         if (req.getMonthlyBill() == null) {
             throw new IllegalArgumentException("monthlyBill is required when inputType=bill");
         }
-        return req.getMonthlyBill() / cfg.getAvgTariffPerUnit();
+        return req.getMonthlyBill() / tariff;
     }
 
-    /** Recommended size from monthly units alone (used by bill OCR sizing). */
+    /** Recommended size from monthly units alone (used by bill OCR sizing — residential). */
     public int recommendKw(double monthlyUnits) {
-        return recommendKw(monthlyUnits, null, null);
+        return recommendKw(monthlyUnits, null, null, cfg.getMaxResidentialKw());
     }
 
-    /** Convert a monthly bill (₹) to estimated monthly units. */
+    /** Convert a monthly bill (₹) to estimated monthly units (residential tariff). */
     public double unitsFromBill(double monthlyBill) {
         return monthlyBill / cfg.getAvgTariffPerUnit();
     }
 
     /** recommendedKw = round(monthlyUnits / divisor), clamped to caps. */
-    int recommendKw(double monthlyUnits, Double roofAreaSqft, Double sanctionedLoadKw) {
+    int recommendKw(double monthlyUnits, Double roofAreaSqft, Double sanctionedLoadKw, int maxKw) {
         int kw = (int) Math.round(monthlyUnits / cfg.getSizingDivisor());
-        kw = Math.max(1, Math.min(kw, cfg.getMaxResidentialKw()));
+        kw = Math.max(1, Math.min(kw, maxKw));
         if (sanctionedLoadKw != null) {
             kw = Math.min(kw, Math.max(1, (int) Math.floor(sanctionedLoadKw)));
         }

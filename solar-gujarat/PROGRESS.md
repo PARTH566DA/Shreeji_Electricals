@@ -12,6 +12,12 @@ Updated as phases complete; committed alongside code.
 - [x] **Phase 6 — Content**: `components/{Reveal,BenefitsGrid,SchemeExplainer,ProcessTimeline,Testimonials,FAQ}.jsx` (Framer Motion `whileInView` via Reveal, reduced-motion safe), full `pages/About.jsx`. Home now composes all real sections; all stubs gone. WhatsApp button done in Phase 2.
 - [x] **Phase 7 — Polish**: i18n expanded (sections + survey labels in EN/GU/HI, applied via `t()`); reduced-motion respected (Reveal/CountUp/CSS); a11y (focus rings, aria, labelled fields); Swagger tags/descriptions on all endpoints; README finalised (endpoint table, languages); `DataSeeder` seeds 3 leads on dev. **All 7 phases complete.**
 
+## Commercial & industrial support (added later)
+- Calculator now supports `consumerType` RESIDENTIAL | COMMERCIAL. Commercial: **no PM Surya Ghar subsidy** (residential-only scheme), instead **accelerated depreciation** tax benefit (60% yr-1 × ~25% tax ≈ 15% of cost), commercial tariff ~₹8/unit, lower ₹/kW bands (₹38k–55k), cap 1000 kW. All constants in `SolarConfig`.
+- Backend: `ConsumerType` enum, `EstimateRequest.consumerType`, `EstimateResponse.{consumerType,acceleratedDepreciationBenefit}`, branched `CalculatorService`. 12 tests green (added commercial 100 kW case + AD formula).
+- Frontend: Home/Business toggle in `Calculator`, adaptive `ResultCards` (shows depreciation benefit + "effective cost" for commercial), `?type=commercial` deep-link. New `pages/Commercial.jsx` (benefits, how-it-differs, CTAs) + `/commercial` route + nav link.
+- Figures from web research (verify before go-live): PM Surya Ghar residential-only; AD 40%+20%; C&I ₹/kW 50kW≈₹45k / 500kW≈₹40k; net metering HT to 1 MW; commercial payback ~3 yr.
+
 ## Design refresh (post multi-page)
 - Background is now React Bits **Grainient** (WebGL via `ogl`) — animated grainy white→sky-blue gradient, rendered once in `Layout` behind all pages. Old SVG/photo backdrop removed.
 - All emoji replaced with a custom stroke **SVG icon set** (`components/icons.jsx`).

@@ -8,11 +8,14 @@ import java.util.List;
 @Data
 @Builder
 public class EstimateResponse {
+    private String consumerType;
     private int recommendedKw;
     private long systemCost;
     private long centralSubsidy;
     private long stateTopUp;
     private boolean stateTopUpEnabled;
+    /** First-year tax saving via accelerated depreciation (commercial only; 0 otherwise). */
+    private long acceleratedDepreciationBenefit;
     private long netCost;
     private long annualUnits;
     private long annualSavings;

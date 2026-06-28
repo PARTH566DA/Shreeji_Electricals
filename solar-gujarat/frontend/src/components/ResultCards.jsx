@@ -13,11 +13,14 @@ function Stat({ label, children, accent = 'text-navy', hint }) {
 }
 
 export default function ResultCards({ result }) {
+  const commercial = result.consumerType === 'COMMERCIAL'
   return (
     <div className="mt-6">
-      {/* Hero number: net cost after subsidy */}
+      {/* Hero number: net / effective cost */}
       <div className="glass p-5 text-center bg-leaf/15">
-        <div className="text-sm text-ink/70">Your net cost after subsidy</div>
+        <div className="text-sm text-ink/70">
+          {commercial ? 'Your effective cost after tax benefit' : 'Your net cost after subsidy'}
+        </div>
         <CountUp
           value={result.netCost}
           className="block text-4xl md:text-5xl font-heading font-extrabold text-navy mt-1"
@@ -29,13 +32,21 @@ export default function ResultCards({ result }) {
         <Stat label="Recommended size" accent="text-sky-deep">
           <CountUp value={result.recommendedKw} format={(v) => `${Math.round(v)} kW`} />
         </Stat>
-        <Stat label="System cost (before subsidy)">
+        <Stat label="System cost">
           <CountUp value={result.systemCost} format={(v) => formatCurrencyINR(v)} />
         </Stat>
-        <Stat label="Central subsidy (PM Surya Ghar)" accent="text-leaf">
-          <CountUp value={result.centralSubsidy} format={(v) => formatCurrencyINR(v)} />
-        </Stat>
-        {result.stateTopUpEnabled ? (
+
+        {commercial ? (
+          <Stat label="Accelerated depreciation" accent="text-leaf" hint="1st-yr tax saving — verify with your CA">
+            <CountUp value={result.acceleratedDepreciationBenefit} format={(v) => formatCurrencyINR(v)} />
+          </Stat>
+        ) : (
+          <Stat label="Central subsidy (PM Surya Ghar)" accent="text-leaf">
+            <CountUp value={result.centralSubsidy} format={(v) => formatCurrencyINR(v)} />
+          </Stat>
+        )}
+
+        {!commercial && result.stateTopUpEnabled ? (
           <Stat label="Gujarat state top-up" accent="text-leaf" hint="potential, subject to GEDA budget — verify">
             <CountUp value={result.stateTopUp} format={(v) => formatCurrencyINR(v)} />
           </Stat>
@@ -44,10 +55,11 @@ export default function ResultCards({ result }) {
             <CountUp value={result.annualSavings} format={(v) => formatCurrencyINR(v)} />
           </Stat>
         )}
+
         <Stat label="Annual generation">
           <CountUp value={result.annualUnits} format={(v) => `${formatNumberIN(Math.round(v))} units`} />
         </Stat>
-        {result.stateTopUpEnabled && (
+        {!commercial && result.stateTopUpEnabled && (
           <Stat label="Annual savings" accent="text-leaf">
             <CountUp value={result.annualSavings} format={(v) => formatCurrencyINR(v)} />
           </Stat>

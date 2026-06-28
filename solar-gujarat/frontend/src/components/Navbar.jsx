@@ -8,6 +8,7 @@ import { siteConfig } from '../lib/siteConfig.js'
 const LINKS = [
   { to: '/', key: 'nav.home', end: true },
   { to: '/calculator', key: 'nav.calculator' },
+  { to: '/commercial', key: 'nav.commercial' },
   { to: '/about', key: 'nav.about' },
 ]
 

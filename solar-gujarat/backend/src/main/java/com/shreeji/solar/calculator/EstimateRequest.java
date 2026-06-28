@@ -13,6 +13,9 @@ public class EstimateRequest {
     @NotNull(message = "inputType is required")
     private InputType inputType;
 
+    /** Residential (default) or commercial/industrial. */
+    private ConsumerType consumerType = ConsumerType.RESIDENTIAL;
+
     /** Required when inputType = bill. */
     @Positive(message = "monthlyBill must be positive")
     private Double monthlyBill;

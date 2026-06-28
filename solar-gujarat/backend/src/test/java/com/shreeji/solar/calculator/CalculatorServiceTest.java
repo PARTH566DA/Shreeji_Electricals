@@ -36,16 +36,19 @@ class CalculatorServiceTest {
 
     @Test
     void recommendedSizeFromUnitsAndClamps() {
+        int max = cfg.getMaxResidentialKw();
         // 450 units / 150 = 3 kW
-        assertEquals(3, service.recommendKw(450, null, null));
+        assertEquals(3, service.recommendKw(450, null, null, max));
         // huge usage clamps to residential max 10 kW
-        assertEquals(10, service.recommendKw(5000, null, null));
+        assertEquals(10, service.recommendKw(5000, null, null, max));
         // sanctioned load caps it
-        assertEquals(2, service.recommendKw(450, null, 2.0));
+        assertEquals(2, service.recommendKw(450, null, 2.0, max));
         // roof area caps it: 150 sq ft -> floor(150/100)=1 kW
-        assertEquals(1, service.recommendKw(450, 150.0, null));
+        assertEquals(1, service.recommendKw(450, 150.0, null, max));
         // floor at 1 kW
-        assertEquals(1, service.recommendKw(10, null, null));
+        assertEquals(1, service.recommendKw(10, null, null, max));
+        // commercial cap allows large systems: 30000 units / 150 = 200 kW
+        assertEquals(200, service.recommendKw(30000, null, null, cfg.getMaxCommercialKw()));
     }
 
     @Test
@@ -53,7 +56,7 @@ class CalculatorServiceTest {
         EstimateRequest req = new EstimateRequest();
         req.setInputType(EstimateRequest.InputType.bill);
         req.setMonthlyBill(2750.0); // /5.5 = 500 units
-        assertEquals(500.0, service.deriveMonthlyUnits(req), 0.001);
+        assertEquals(500.0, service.deriveMonthlyUnits(req, cfg.getAvgTariffPerUnit()), 0.001);
     }
 
     @Test
@@ -74,5 +77,34 @@ class CalculatorServiceTest {
         assertEquals(26, r.getSavingsSeries().size()); // years 0..25
         assertTrue(r.getPaybackYears() > 0);
         assertFalse(r.isStateTopUpEnabled());
+        assertEquals("RESIDENTIAL", r.getConsumerType());
+        assertEquals(0, r.getAcceleratedDepreciationBenefit());
+    }
+
+    // --- Commercial / industrial (no subsidy, accelerated depreciation) ---
+    @Test
+    void commercialEstimateAt100kw() {
+        EstimateRequest req = new EstimateRequest();
+        req.setInputType(EstimateRequest.InputType.units);
+        req.setMonthlyUnits(15000.0); // 15000 / 150 = 100 kW
+        req.setDiscom(Discom.DGVCL);
+        req.setConsumerType(ConsumerType.COMMERCIAL);
+
+        EstimateResponse r = service.estimate(req);
+        assertEquals("COMMERCIAL", r.getConsumerType());
+        assertEquals(100, r.getRecommendedKw());
+        assertEquals(0, r.getCentralSubsidy());          // no PM Surya Ghar for C&I
+        assertEquals(4_200_000, r.getSystemCost());      // 100 * 42000
+        assertEquals(630_000, r.getAcceleratedDepreciationBenefit()); // 4.2M * 0.6 * 0.25
+        assertEquals(3_570_000, r.getNetCost());         // systemCost - AD benefit
+        assertEquals(150_000, r.getAnnualUnits());       // 100 * 1500
+        assertEquals(1_200_000, r.getAnnualSavings());   // 150000 * 8.0
+        assertEquals(3.0, r.getPaybackYears());          // 3.57M / 1.2M ≈ 2.975 -> 3.0
+        assertEquals(8.0, r.getAssumptions().getTariffPerUnit());
+    }
+
+    @Test
+    void acceleratedDepreciationBenefitFormula() {
+        assertEquals(150000, cfg.acceleratedDepreciationBenefit(1_000_000)); // 1M * 0.6 * 0.25
     }
 }
