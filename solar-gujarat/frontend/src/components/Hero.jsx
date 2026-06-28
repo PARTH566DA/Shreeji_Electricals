@@ -2,33 +2,48 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
-// Home hero band. The sky+panels backdrop is rendered globally by Layout.
+// Boxless hero: the slogan floats directly on the Grainient background; the CTAs
+// and social-proof stat float gently (fluid) below, the stat in liquid glass.
 export default function Hero() {
   const { t } = useTranslation()
   return (
-    <section className="relative px-3 pt-10 pb-16 min-h-[82vh] flex items-center">
-      <div className="mx-auto max-w-5xl w-full text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
+    <section className="relative px-4 pt-12 pb-24 min-h-[90vh] flex items-center justify-center text-center">
+      <div className="mx-auto max-w-6xl w-full">
+        <motion.h1
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="glass glass-solid mx-auto max-w-3xl px-6 py-12 md:px-10 md:py-16"
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="font-heading font-extrabold text-navy leading-[1.02] tracking-tight text-6xl sm:text-7xl md:text-8xl lg:text-[8.5rem] [text-shadow:0_2px_28px_rgba(255,255,255,0.6)]"
         >
-          <h1 className="text-5xl md:text-7xl font-extrabold text-navy leading-[1.05]">{t('hero.headline')}</h1>
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/calculator" className="btn-sun text-base">{t('hero.calcCta')}</Link>
-            <Link to="/book-survey" className="btn-sky text-base">{t('hero.surveyCta')}</Link>
+          {t('hero.headline')}
+        </motion.h1>
+
+        {/* Floating CTAs (entrance via motion wrapper, float via inner CSS) */}
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.18, ease: 'easeOut' }}
+          className="mt-12"
+        >
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-floaty">
+            <Link to="/calculator" className="btn-sun text-base shadow-xl">{t('hero.calcCta')}</Link>
+            <Link to="/book-survey" className="btn-sky text-base shadow-xl">{t('hero.surveyCta')}</Link>
           </div>
         </motion.div>
 
-        {/* Glass stat strip — single social-proof stat */}
+        {/* Floating glass stat */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
-          className="glass mx-auto mt-5 inline-block px-7 py-3 text-base md:text-lg text-navy font-semibold"
+          transition={{ duration: 0.6, delay: 0.32, ease: 'easeOut' }}
+          className="mt-10 flex justify-center"
         >
-          {t('hero.installed')}
+          <span
+            className="glass px-8 py-3.5 text-base md:text-lg font-semibold text-navy animate-floaty"
+            style={{ animationDelay: '1.6s' }}
+          >
+            {t('hero.installed')}
+          </span>
         </motion.div>
       </div>
     </section>
