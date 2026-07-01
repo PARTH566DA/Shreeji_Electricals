@@ -130,17 +130,25 @@ const Grainient = ({
 }) => {
   const containerRef = useRef(null);
 
-  // Effect 1: build WebGL context once, pause when offscreen / tab hidden
+  // Effect 1: build WebGL context once, pause when offscreen / tab hidden.
+  // Wrapped in try/catch so a missing/blocked WebGL2 context can never crash the
+  // whole app — the page just falls back to the CSS gradient behind it.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({
-      webgl: 2,
-      alpha: true,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2)
-    });
+    let renderer;
+    try {
+      renderer = new Renderer({
+        webgl: 2,
+        alpha: true,
+        antialias: false,
+        dpr: Math.min(window.devicePixelRatio || 1, 2)
+      });
+    } catch (err) {
+      console.warn('Grainient: WebGL2 unavailable, using gradient fallback.', err);
+      return;
+    }
 
     const gl = renderer.gl;
     const canvas = gl.canvas;
