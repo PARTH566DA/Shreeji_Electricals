@@ -7,10 +7,15 @@ RUN mvn -q -DskipTests package
 
 FROM eclipse-temurin:17-jre
 RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-guj \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin app
 WORKDIR /app
-COPY --from=build /build/target/*.jar app.jar
+COPY --from=build --chown=root:root /build/target/*.jar app.jar
+# Run unprivileged; the app needs no writes outside the JVM temp dir.
+USER 10001
 ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8090
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Exit (and let the host restart us) on OOM rather than limping on in a broken state.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-jar", "/app/app.jar"]

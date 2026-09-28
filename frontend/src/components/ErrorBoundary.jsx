@@ -25,9 +25,12 @@ export default class ErrorBoundary extends Component {
             <p style={{ color: '#5B708B', marginBottom: 16 }}>
               The page hit an unexpected error. Try reloading.
             </p>
-            <pre style={{ textAlign: 'left', background: '#f4f7fb', color: '#0F2540', padding: 12, borderRadius: 10, fontSize: 12, overflow: 'auto' }}>
-              {String(this.state.error?.message || this.state.error)}
-            </pre>
+            {/* Internal error details are for developers only — never shown on the live site. */}
+            {import.meta.env.DEV && (
+              <pre style={{ textAlign: 'left', background: '#f4f7fb', color: '#0F2540', padding: 12, borderRadius: 10, fontSize: 12, overflow: 'auto' }}>
+                {String(this.state.error?.message || this.state.error)}
+              </pre>
+            )}
             <button
               type="button"
               onClick={() => window.location.reload()}

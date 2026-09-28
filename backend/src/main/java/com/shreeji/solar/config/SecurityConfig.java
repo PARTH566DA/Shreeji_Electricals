@@ -4,15 +4,11 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -22,67 +18,47 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * HTTP Basic auth (BCrypt) guarding the admin endpoints; everything else is public.
- * The single admin user comes from {@code app.admin.username} + {@code app.admin.password-hash}
- * (a BCrypt hash). Override both via env vars in production — never commit a real hash.
+ * The API is fully public and stateless (no accounts, no database). Spring Security is kept
+ * for its hardened defaults: security headers, CORS enforcement and no session cookies.
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${app.admin.username}")
-    private String adminUsername;
-
-    @Value("${app.admin.password-hash}")
-    private String adminPasswordHash;
-
     @Value("${app.cors.allowed-origins}")
     private String[] allowedOrigins;
 
     @PostConstruct
-    void validateAdminCredentials() {
-        if (adminPasswordHash == null || adminPasswordHash.isBlank()) {
-            throw new IllegalStateException("APP_ADMIN_PASSWORD_HASH must be configured");
+    void validateConfig() {
+        for (String origin : allowedOrigins) {
+            if (origin.contains("*")) {
+                throw new IllegalStateException("Wildcard CORS origins are not allowed: " + origin);
+            }
         }
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Stateless JSON API + HTTP Basic — CSRF tokens don't apply.
+                // No cookies or logins anywhere — CSRF tokens don't apply.
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
-                // Allow the H2 console (dev) to render in a frame.
-                .headers(h -> h.frameOptions(f -> f.disable()))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/leads/**").hasRole("ADMIN")
-                        .anyRequest().permitAll()
-                )
-                .httpBasic(Customizer.withDefaults());
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(h -> h.frameOptions(f -> f.deny()))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .httpBasic(b -> b.disable())
+                .formLogin(f -> f.disable());
         return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails admin = User.withUsername(adminUsername)
-                .password(adminPasswordHash) // already BCrypt-encoded
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(Arrays.asList(allowedOrigins));
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        cfg.setAllowedHeaders(List.of("*"));
-        cfg.setAllowCredentials(true);
+        // The API only exposes GET/POST and never uses cookies.
+        cfg.setAllowedMethods(List.of(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.OPTIONS.name()));
+        cfg.setAllowedHeaders(List.of("Content-Type"));
+        cfg.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", cfg);
         return source;

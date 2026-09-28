@@ -2,7 +2,9 @@ package com.shreeji.solar.bill;
 
 import com.shreeji.solar.calculator.CalculatorService;
 import net.sourceforge.tess4j.Tesseract;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.slf4j.Logger;
@@ -11,10 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,6 +54,10 @@ public class BillAnalysisService {
             "/opt/homebrew/lib", "/usr/local/lib", "/usr/lib", "/usr/lib/x86_64-linux-gnu",
     };
 
+    // Upper bound on decoded/rendered pixels. A small, highly compressed PNG or a PDF with a
+    // huge page box can otherwise expand into gigabytes and OOM the JVM (decompression bomb).
+    static final long MAX_PIXELS = 16_000_000L;
+
     private final CalculatorService calculator;
     private final GeminiBillExtractor gemini;
 
@@ -76,10 +85,12 @@ public class BillAnalysisService {
         }
     }
 
-    public BillAnalysisResponse analyze(MultipartFile file) {
+    /** @param mimeType type detected from the file's magic bytes (image/jpeg, image/png, application/pdf) */
+    public BillAnalysisResponse analyze(MultipartFile file, String mimeType) {
+        boolean pdf = "application/pdf".equals(mimeType);
         // 1) Preferred: Gemini vision — reads handwritten Gujarati and unclear photos.
         if (gemini.isConfigured()) {
-            BillAnalysisResponse viaGemini = analyzeWithGemini(file);
+            BillAnalysisResponse viaGemini = analyzeWithGemini(file, pdf, mimeType);
             if (viaGemini != null) return viaGemini;
             log.warn("Gemini analysis unavailable — falling back to local OCR");
         }
@@ -87,7 +98,7 @@ public class BillAnalysisService {
         // 2) Fallback: local Tesseract OCR + regex (printed bills only).
         String text;
         try {
-            text = ocr(file);
+            text = ocr(file, pdf);
         } catch (Throwable t) {
             // UnsatisfiedLinkError / missing tessdata / unreadable file — degrade gracefully.
             log.warn("Bill OCR unavailable or failed: {}", t.toString());
@@ -103,24 +114,21 @@ public class BillAnalysisService {
     // ---- Gemini vision path ----
 
     /** Returns null on any failure so analyze() can fall back to local OCR. */
-    private BillAnalysisResponse analyzeWithGemini(MultipartFile file) {
+    private BillAnalysisResponse analyzeWithGemini(MultipartFile file, boolean pdf, String mimeType) {
         try {
             byte[] bytes;
             String mime;
-            if (isPdf(file)) {
+            if (pdf) {
                 // Rasterise the first page — Gemini takes images, and 200 DPI is plenty.
-                try (PDDocument doc = PDDocument.load(file.getInputStream())) {
-                    BufferedImage page = new PDFRenderer(doc).renderImageWithDPI(0, 200, ImageType.RGB);
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    ImageIO.write(page, "jpg", out);
-                    bytes = out.toByteArray();
-                    mime = "image/jpeg";
-                }
+                BufferedImage page = renderFirstPage(file.getBytes(), 200, ImageType.RGB);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                ImageIO.write(page, "jpg", out);
+                bytes = out.toByteArray();
+                mime = "image/jpeg";
             } else {
                 // Send the original photo untouched — re-encoding only loses detail.
                 bytes = file.getBytes();
-                String type = file.getContentType();
-                mime = (type != null && type.startsWith("image/")) ? type : "image/jpeg";
+                mime = mimeType;
             }
 
             GeminiBillExtractor.Extraction ex = gemini.extract(bytes, mime);
@@ -178,8 +186,8 @@ public class BillAnalysisService {
 
     // ---- OCR ----
 
-    private String ocr(MultipartFile file) throws Exception {
-        BufferedImage image = preprocess(toImage(file));
+    private String ocr(MultipartFile file, boolean pdf) throws Exception {
+        BufferedImage image = preprocess(toImage(file, pdf));
         Tesseract tess = new Tesseract();
         String datapath = firstExistingTessdata();
         if (datapath != null) {
@@ -210,6 +218,8 @@ public class BillAnalysisService {
         int targetWidth = 2000;
         double scale = src.getWidth() < targetWidth ? (double) targetWidth / src.getWidth() : 1.0;
         scale = Math.min(scale, 3.0);
+        // Never upscale past the pixel budget (e.g. a very tall, narrow image).
+        scale = Math.min(scale, Math.sqrt((double) MAX_PIXELS / ((long) src.getWidth() * src.getHeight())));
         int w = (int) Math.round(src.getWidth() * scale);
         int h = (int) Math.round(src.getHeight() * scale);
 
@@ -222,22 +232,45 @@ public class BillAnalysisService {
         return gray;
     }
 
-    private static boolean isPdf(MultipartFile file) {
-        String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
-        String type = file.getContentType() == null ? "" : file.getContentType().toLowerCase();
-        return name.endsWith(".pdf") || type.contains("pdf");
+    private BufferedImage toImage(MultipartFile file, boolean pdf) throws Exception {
+        if (pdf) {
+            return renderFirstPage(file.getBytes(), 300, ImageType.RGB); // first page @300 DPI
+        }
+        return readImageBounded(file.getBytes());
     }
 
-    private BufferedImage toImage(MultipartFile file) throws Exception {
-        if (isPdf(file)) {
-            try (PDDocument doc = PDDocument.load(file.getInputStream())) {
-                PDFRenderer renderer = new PDFRenderer(doc);
-                return renderer.renderImageWithDPI(0, 300); // first page @300 DPI
+    /** Renders page 1 at the requested DPI, lowered if needed to stay within MAX_PIXELS. */
+    static BufferedImage renderFirstPage(byte[] pdfBytes, float dpi, ImageType type) throws Exception {
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
+            if (doc.getNumberOfPages() < 1) throw new IllegalArgumentException("PDF has no pages");
+            PDRectangle box = doc.getPage(0).getCropBox();
+            double areaInches = (box.getWidth() / 72.0) * (box.getHeight() / 72.0);
+            if (!(areaInches > 0)) throw new IllegalArgumentException("PDF page has no area");
+            float safeDpi = (float) Math.min(dpi, Math.sqrt(MAX_PIXELS / areaInches));
+            if (safeDpi < 36) throw new IllegalArgumentException("PDF page is too large");
+            return new PDFRenderer(doc).renderImageWithDPI(0, safeDpi, type);
+        }
+    }
+
+    /** Reads the image header first and refuses to decode anything over MAX_PIXELS. */
+    static BufferedImage readImageBounded(byte[] bytes) throws Exception {
+        try (ImageInputStream in = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            Iterator<ImageReader> readers = in == null ? null : ImageIO.getImageReaders(in);
+            if (readers == null || !readers.hasNext()) {
+                throw new IllegalArgumentException("Unsupported or unreadable image");
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(in, true, true);
+                long pixels = (long) reader.getWidth(0) * reader.getHeight(0);
+                if (pixels <= 0 || pixels > MAX_PIXELS) {
+                    throw new IllegalArgumentException("Image dimensions are too large");
+                }
+                return reader.read(0);
+            } finally {
+                reader.dispose();
             }
         }
-        BufferedImage img = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
-        if (img == null) throw new IllegalArgumentException("Unsupported or unreadable image");
-        return img;
     }
 
     private String firstExistingTessdata() {

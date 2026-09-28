@@ -9,6 +9,9 @@ const CONF_CLS = { high: 'text-leaf', medium: 'text-sun', low: 'text-muted' }
 // Matches the backend limit (app.bill.rate-limit.window-seconds). Keep in sync.
 const COOLDOWN_SECONDS = 60
 
+// The server may also refuse for hours once its global daily cap is reached.
+const formatWait = (s) => (s < 120 ? `${s}s` : s < 7200 ? `${Math.ceil(s / 60)} min` : `${Math.ceil(s / 3600)} h`)
+
 // Bill upload → OCR → editable detected fields that feed the calculator (brief §4.5).
 export default function BillUpload({ onUseValues }) {
   const { t } = useTranslation()
@@ -48,7 +51,7 @@ export default function BillUpload({ onUseValues }) {
         // Server rejected as too soon — sync our countdown to its Retry-After.
         const wait = Number(err.response.data?.retryAfterSeconds) || COOLDOWN_SECONDS
         setCooldown(wait)
-        setError(err.response.data?.message || `Please wait ${wait}s before uploading another bill.`)
+        setError(err.response.data?.message || `Please wait ${formatWait(wait)} before uploading another bill.`)
       } else {
         setError(err.response?.data?.message || err.message || 'Upload failed')
       }
@@ -93,7 +96,7 @@ export default function BillUpload({ onUseValues }) {
                 {loading
                   ? 'Reading your bill…'
                   : cooldown > 0
-                    ? `Please wait ${cooldown}s before uploading another bill`
+                    ? `Please wait ${formatWait(cooldown)} before uploading another bill`
                     : isDragActive
                       ? 'Drop the bill here'
                       : 'Drag & drop your bill, or click to choose'}

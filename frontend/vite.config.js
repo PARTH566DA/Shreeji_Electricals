@@ -11,6 +11,7 @@ export default defineConfig({
     // API call via CORS). Kill the stale process rather than changing this port.
     port: 5173,
     strictPort: true,
-    host: true,
+    // Loopback only — don't expose the dev server (source + fs access) to the whole LAN.
+    host: 'localhost',
   },
 })

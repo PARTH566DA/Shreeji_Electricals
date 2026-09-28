@@ -13,19 +13,15 @@ spring:
 
 server:
   port: ${PORT:8090}
-  forward-headers-strategy: framework
+  # Never let X-Forwarded-* rewrite the request's remote address: clients can send those
+  # headers themselves, which would let anyone dodge the per-IP rate limits. Proxy
+  # handling is done explicitly in ClientIpResolver (app.trust-forwarded-headers).
+  forward-headers-strategy: none
 
 # CORS allowed origins (React dev server). Override per environment.
 app:
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
-  # Admin auth for /api/leads — HTTP Basic with a BCrypt-hashed password.
-  # Default password is "shreeji-admin-2026". In production, override the hash via
-  # the APP_ADMIN_PASSWORD_HASH env var (never commit a real one). Generate a hash:
-  #   htpasswd -bnBC 10 "" 'your-password' | tr -d '\n' | sed 's/^://'
-  admin:
-    username: ${APP_ADMIN_USERNAME:admin}
-    password-hash: ${APP_ADMIN_PASSWORD_HASH:}
   # Google Gemini vision API for bill reading (handwritten Gujarati + unclear photos).
   # Free key: https://aistudio.google.com/apikey
   #   - Local dev: put the key in application-local.yml (git-ignored, auto-loaded above).
@@ -42,7 +38,16 @@ app:
   bill:
     rate-limit:
       window-seconds: ${BILL_RATE_LIMIT_WINDOW_SECONDS:60}
+    # Global cap on accepted uploads per UTC day (all clients), so rotating IPs can't drain
+    # the Gemini quota. Keep it at or below your Gemini daily quota. 0 disables.
+    daily-cap: ${BILL_DAILY_CAP:200}
+    # Max bill analyses running at once (OCR / PDF rendering are memory-heavy).
+    max-concurrent: ${BILL_MAX_CONCURRENT:2}
+  # Only set true when the backend sits behind a reverse proxy you control. The client IP is
+  # then read from X-Forwarded-For, counting trusted-proxy-count entries from the RIGHT
+  # (entries further left are client-supplied and can be forged).
   trust-forwarded-headers: ${APP_TRUST_FORWARDED_HEADERS:false}
+  trusted-proxy-count: ${APP_TRUSTED_PROXY_COUNT:1}
 
 springdoc:
   api-docs:
@@ -52,52 +57,14 @@ springdoc:
     path: /swagger-ui.html
 
 ---
-# ---------- DEV profile (H2 in-memory) ----------
+# ---------- DEV profile: Swagger UI at /swagger-ui.html ----------
 spring:
   config:
     activate:
       on-profile: dev
-  datasource:
-    url: jdbc:h2:mem:solardb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    open-in-view: false
-
-app:
-  admin:
-    password-hash: ${APP_ADMIN_PASSWORD_HASH:$2y$10$Humfo2FFKHf4ZnMAIhq.RuB7FyXPKiXvPHgKI4LNwFLlaKkCYYnY.}
 
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
-    enabled: true
-
----
-# ---------- PROD profile (PostgreSQL) ----------
-spring:
-  config:
-    activate:
-      on-profile: prod
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/solardb}
-    username: ${DB_USERNAME:solar}
-    password: ${DB_PASSWORD:solar}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-    open-in-view: false
-
-springdoc:
-  api-docs:
     enabled: true

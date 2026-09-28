@@ -1,9 +1,10 @@
 import axios from 'axios'
 
-// Base URL comes from a Vite env var (VITE_API_BASE), default to local backend on 8090.
-const baseURL = import.meta.env.VITE_API_BASE || 'http://localhost:8090/api'
+// Base URL comes from a Vite env var (VITE_API_BASE); the local backend fallback is dev-only
+// so a production build never silently calls http://localhost on the visitor's machine.
+const baseURL = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8090/api' : '/api')
 
-const api = axios.create({ baseURL })
+const api = axios.create({ baseURL, timeout: 60000 })
 
 export const getHealth = () => api.get('/health').then((r) => r.data)
 export const getDiscoms = () => api.get('/discoms').then((r) => r.data)
@@ -15,8 +16,5 @@ export const analyzeBill = (file) => {
     .post('/bill/analyze', form, { headers: { 'Content-Type': 'multipart/form-data' } })
     .then((r) => r.data)
 }
-export const bookSurvey = (payload) => api.post('/survey', payload).then((r) => r.data)
-export const getLeads = (username, password) =>
-  api.get('/leads', { auth: { username, password } }).then((r) => r.data)
 
 export default api

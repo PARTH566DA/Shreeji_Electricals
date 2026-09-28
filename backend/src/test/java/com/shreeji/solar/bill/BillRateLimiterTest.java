@@ -31,6 +31,22 @@ class BillRateLimiterTest {
     }
 
     @Test
+    void dailyCapStopsRotatingClients() {
+        BillRateLimiter limiter = new BillRateLimiter(60, 2);
+        assertEquals(0, limiter.acquire("1.1.1.1"));
+        assertEquals(0, limiter.acquire("2.2.2.2"));
+        assertTrue(limiter.acquire("3.3.3.3") > 0, "a fresh IP is still refused once today's cap is used");
+    }
+
+    @Test
+    void rejectedCallsDoNotConsumeDailyCap() {
+        BillRateLimiter limiter = new BillRateLimiter(60, 2);
+        assertEquals(0, limiter.acquire("1.1.1.1"));
+        assertTrue(limiter.acquire("1.1.1.1") > 0);
+        assertEquals(0, limiter.acquire("2.2.2.2"), "the cooled-down retry must not have used a slot");
+    }
+
+    @Test
     void zeroWindowDisablesLimiter() {
         BillRateLimiter limiter = new BillRateLimiter(0);
         assertEquals(0, limiter.acquire("5.5.5.5"));

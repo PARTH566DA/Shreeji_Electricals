@@ -1,10 +1,16 @@
 package com.shreeji.solar.survey;
 
 import com.shreeji.solar.model.Discom;
+import com.shreeji.solar.web.ClientIpResolver;
+import com.shreeji.solar.web.CooldownRateLimiter;
+import com.shreeji.solar.web.DailyCap;
+import com.shreeji.solar.web.TooManyRequestsException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,14 +24,31 @@ import java.util.Map;
 public class SurveyController {
 
     private final LeadRepository repo;
+    private final ClientIpResolver clientIp;
+    // Public, unauthenticated write — bound it so bots can't flood the leads table.
+    private final CooldownRateLimiter perClient;
+    private final DailyCap daily;
 
-    public SurveyController(LeadRepository repo) {
+    public SurveyController(LeadRepository repo, ClientIpResolver clientIp,
+                            @Value("${app.survey.rate-limit.window-seconds:60}") long windowSeconds,
+                            @Value("${app.survey.daily-cap:100}") int dailyCap) {
         this.repo = repo;
+        this.clientIp = clientIp;
+        this.perClient = new CooldownRateLimiter(windowSeconds);
+        this.daily = new DailyCap(dailyCap);
     }
 
     @Operation(summary = "Book a survey (creates a Lead)")
     @PostMapping("/survey")
-    public ResponseEntity<Map<String, Object>> book(@Valid @RequestBody SurveyRequest req) {
+    public ResponseEntity<Map<String, Object>> book(@Valid @RequestBody SurveyRequest req, HttpServletRequest request) {
+        synchronized (this) {
+            long wait = daily.peek();
+            if (wait == 0) wait = perClient.acquire(clientIp.resolve(request));
+            if (wait > 0) {
+                throw new TooManyRequestsException(wait, "Too many survey requests. Please try again later.");
+            }
+            daily.consume();
+        }
         Lead lead = new Lead();
         lead.setName(req.getName());
         lead.setPhone(req.getPhone());

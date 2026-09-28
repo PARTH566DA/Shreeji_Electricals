@@ -28,7 +28,10 @@ export default function Calculator({ preset, showHeading = true, defaultType = '
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    getDiscoms().then(setDiscoms).catch(() => setDiscoms(FALLBACK_DISCOMS))
+    // Anything but a list (e.g. an HTML page from a misrouted /api) falls back too.
+    getDiscoms()
+      .then((d) => setDiscoms(Array.isArray(d) && d.length ? d : FALLBACK_DISCOMS))
+      .catch(() => setDiscoms(FALLBACK_DISCOMS))
   }, [])
 
   // Allow the Bill-upload section to push detected values in.

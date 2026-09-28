@@ -59,15 +59,14 @@ software, **not financial advice**.
 
 **Backend** — `web/backend`
 - Java 17 (compiles/runs on 21), Maven
-- Spring Boot **3.2.5**: `web`, `data-jpa`, `validation`, `security`
-- springdoc-openapi **2.5.0** (Swagger UI)
+- Spring Boot **3.5.16**: `web`, `validation`, `security` — **stateless, no database**
+- springdoc-openapi **2.8.17** (Swagger UI)
 - Lombok
-- H2 (dev, runtime) / PostgreSQL (prod, runtime) — *currently unused, see §15*
-- **Tess4J 5.11.0** (Tesseract OCR binding) + **PDFBox 2.0.31** (rasterise PDF bills)
+- **Tess4J 5.20.0** (Tesseract OCR binding) + **PDFBox 3.0.8** (rasterise PDF bills)
 - Google **Gemini** vision API via `RestClient` (no SDK)
 
 **Frontend** — `web/frontend`
-- React **18.3**, Vite **5**, React Router **6**
+- React **18.3**, Vite **7**, React Router **7**
 - Tailwind CSS **3.4** (glassmorphism design system)
 - framer-motion 11, recharts 2.12, react-dropzone 14, axios 1.7
 - i18next 23 / react-i18next 14 — **EN / ગુજરાતી / हिन्दी**
@@ -91,13 +90,12 @@ Shreeji_Electricals/
     │       │   ├── BillController.java        POST /api/bill/analyze
     │       │   ├── BillAnalysisService.java   Gemini-first, Tesseract fallback
     │       │   ├── GeminiBillExtractor.java   Gemini vision call
-    │       │   ├── BillRateLimiter.java       1 upload / IP / minute
+    │       │   ├── BillRateLimiter.java       1 upload / IP / minute + global daily cap
     │       │   └── BillAnalysisResponse.java
     │       ├── calculator/           Sizing, subsidy, savings, payback
     │       ├── config/               SolarConfig (all constants), SecurityConfig, OpenApiConfig
     │       ├── model/Discom.java
-    │       ├── survey/               Lead entity + survey endpoint (UNUSED — see §15)
-    │       └── web/                  Health, DISCOMs, exception handling
+    │       └── web/                  Health, DISCOMs, exception handling, client-IP + rate-limit helpers
     └── frontend/                     Vite React app — port 5173
         ├── .env                      VITE_API_BASE
         ├── tailwind.config.js        Brand tokens
@@ -105,7 +103,7 @@ Shreeji_Electricals/
             ├── main.jsx              Routes
             ├── index.css             Design system (.glass, .btn-*, animate-in)
             ├── components/           SunCycleHero, BillUpload, Calculator, SurveyForm, …
-            ├── pages/                Home, CalculatorPage, Commercial, About, BookSurvey, AdminLeads, NotFound
+            ├── pages/                Home, CalculatorPage, Commercial, About, BookSurvey, NotFound
             ├── i18n/                 en.json, gu.json, hi.json
             └── lib/                  api.js (axios), siteConfig.js, format.js
 ```
@@ -154,10 +152,12 @@ All backend config lives in `web/backend/src/main/resources/application.yml`.
 |---|---|---|
 | `server.port` | `8090` | API port |
 | `app.cors.allowed-origins` | `http://localhost:5173,http://127.0.0.1:5173` | CORS allow-list |
-| `app.admin.username` | `admin` | Admin basic-auth user |
-| `app.admin.password-hash` | Development-only BCrypt fallback | **Set `APP_ADMIN_PASSWORD_HASH` in prod; startup fails if absent** |
 | `app.gemini.model` | `gemini-2.5-flash` | Vision model |
 | `app.bill.rate-limit.window-seconds` | `60` | Seconds between accepted uploads per IP (`0` disables) |
+| `app.bill.daily-cap` | `200` | Accepted uploads per UTC day across **all** clients (`0` disables) — keep ≤ Gemini daily quota |
+| `app.bill.max-concurrent` | `2` | Bill analyses running at once (OCR/PDF rendering is memory-heavy) |
+| `app.trust-forwarded-headers` | `false` | Read client IP from `X-Forwarded-For` (only behind your own proxy) |
+| `app.trusted-proxy-count` | `1` | Proxies that append to `X-Forwarded-For`; the IP is taken this many entries from the **right** |
 | `spring.servlet.multipart.max-file-size` | `10MB` | Bill upload cap |
 | `solar.*` | see §8 | All tariff/subsidy/cost constants |
 
@@ -182,11 +182,6 @@ Get a free key at <https://aistudio.google.com/apikey>.
 >
 > With no key, bill analysis silently falls back to local Tesseract OCR.
 
-### Admin password hash
-```bash
-export APP_ADMIN_PASSWORD_HASH="$(htpasswd -bnBC 10 '' 'your-strong-password' | tr -d '\n' | sed 's/^://')"
-```
-
 ### Frontend
 `web/frontend/.env`:
 ```
@@ -209,7 +204,6 @@ country code first, used for `wa.me` links), email, address.
 | `/commercial` | Commercial/industrial path (no subsidy; accelerated depreciation) |
 | `/about` | Company info |
 | `/book-survey` | Survey form → **sends to owner's WhatsApp** |
-| `/admin/leads` | Admin lead table (HTTP Basic) — *now vestigial, see §15* |
 
 Plus: floating WhatsApp + click-to-call buttons, language toggle (EN/GU/HI), error boundary,
 scroll-to-top.
@@ -226,11 +220,11 @@ Base path `/api`. Full schemas in Swagger.
 | GET | `/api/discoms` | — | The four Gujarat DISCOMs + areas |
 | POST | `/api/calculator/estimate` | — | Size, subsidy, savings, payback, 25-yr series |
 | POST | `/api/bill/analyze` | — | Multipart `file` → units/amount/DISCOM. **Rate limited** |
-| POST | `/api/survey` | — | Legacy: creates a Lead. **Frontend no longer calls this** |
-| GET | `/api/leads` | HTTP Basic (ADMIN) | Legacy lead list |
-
-**Security:** only `/api/leads/**` requires auth (`hasRole("ADMIN")`); everything else is
-public. CSRF disabled (stateless JSON API), CORS restricted to the allow-list.
+**Security:** every endpoint is public and stateless — no accounts, sessions, cookies or database.
+Spring Security stays for its hardened headers (`X-Frame-Options: DENY`, `nosniff`, HSTS over HTTPS)
+and CORS enforcement: GET/POST only, no credentials, wildcard origins rejected at startup.
+CSRF is disabled because there are no cookies to ride on. Unknown paths, bad JSON, wrong methods
+and oversized uploads return 4xx, never a 500 with a stack trace.
 
 ### `POST /api/calculator/estimate`
 Request — **required:** `inputType` (`bill`|`units`), `discom` (`MGVCL`|`DGVCL`|`UGVCL`|`PGVCL`),
@@ -353,6 +347,11 @@ adBenefit = round(systemCost × 0.60 × 0.25)   // first-year tax saving
 
 **The uploaded image is never persisted** — read once in memory, then discarded.
 
+**Upload safety:** the file type is taken from its magic bytes (JPG/PNG/PDF), never the client's
+`Content-Type`. Decoded images and rendered PDF pages are capped at 16M pixels
+(`BillAnalysisService.MAX_PIXELS`): oversized images are refused before decoding, and large PDF pages
+are rendered at a lower DPI — this stops decompression bombs from exhausting the JVM heap.
+
 ---
 
 ## 10. Rate limiting
@@ -361,7 +360,13 @@ Every bill upload costs one Gemini call, and the free tier has a daily quota —
 `BillRateLimiter` allows **one accepted upload per client IP per 60 seconds**.
 
 - In-memory `ConcurrentHashMap<ip, lastAcceptedMillis>`, atomic check-and-set via `compute()`.
-- Client IP = first hop of `X-Forwarded-For` (behind a proxy) else `getRemoteAddr()`.
+- Client IP = `getRemoteAddr()`, or — only when `APP_TRUST_FORWARDED_HEADERS=true` — the
+  `X-Forwarded-For` entry `APP_TRUSTED_PROXY_COUNT` places from the **right** (entries further left
+  are client-supplied and forgeable). IPv6 clients are keyed by their `/64`. See `web/ClientIpResolver`.
+- **Never** set `server.forward-headers-strategy: framework`/`native` — it would let clients set their
+  own `remoteAddr` via headers and bypass every per-IP limit.
+- **Global daily cap** (`app.bill.daily-cap`, default 200/UTC day) bounds quota use even from rotating IPs,
+  and at most `app.bill.max-concurrent` analyses run at once (extra requests get a 429).
 - Evicts stale entries once the map exceeds 1000 keys.
 - Empty uploads don't consume the window (they never reach the API).
 - Exceeded → `TooManyRequestsException` → **429** + `Retry-After` header.
@@ -370,7 +375,7 @@ Every bill upload costs one Gemini call, and the free tier has a daily quota —
 - Configure with `app.bill.rate-limit.window-seconds` / `BILL_RATE_LIMIT_WINDOW_SECONDS`; `0` disables.
 
 > Per-IP means users behind one NAT share a window — the standard trade-off for a public form
-> with no login. For stronger protection, add a **global daily cap** next.
+> with no login; the global daily cap is the backstop.
 
 ---
 
@@ -475,22 +480,17 @@ headings and the survey form are translated; long body copy defaults to English.
 
 ---
 
-## 15. Known dead code & cleanup
+## 15. Removed: database, leads & admin (2026-09-28)
 
-Since the survey moved to WhatsApp (§11), **the entire database layer is unused**:
+Once the survey moved to WhatsApp (§11), the database layer was dead code — and public attack
+surface (an unauthenticated `POST /api/survey` that wrote to the DB, a Basic-auth admin endpoint,
+and the H2 console). It has been **deleted**: the `survey/` package (`Lead*`, `SurveyController`,
+`SurveyRequest`, `DataSeeder`), `AdminLeads.jsx` + `/admin/leads`, `bookSurvey()`/`getLeads()`,
+the JPA/H2/PostgreSQL dependencies and all `spring.datasource`/`spring.jpa`/`app.admin` config.
 
-| Unused | Location |
-|---|---|
-| `Lead`, `LeadRepository`, `LeadStatus` | `backend/.../survey/` |
-| `SurveyController`, `SurveyRequest`, `DataSeeder` | `backend/.../survey/` |
-| `AdminLeads.jsx` + `/admin/leads` route | `frontend/src/pages/` |
-| `bookSurvey()`, `getLeads()` | `frontend/src/lib/api.js` |
-| `spring-boot-starter-data-jpa`, H2, PostgreSQL deps | `backend/pom.xml` |
-| `spring.datasource.*`, `spring.jpa.*` | `application.yml` |
-
-**Recommended:** delete these to make the backend **fully stateless** — no database to host,
-provision or back up. The calculator and bill endpoints need no persistence. This meaningfully
-simplifies deployment.
+The backend is now **fully stateless** — no database to host, provision or back up, and no
+credentials besides the Gemini key. Do not reintroduce a public write endpoint without rate
+limiting (see `web/CooldownRateLimiter` + `web/DailyCap`).
 
 ---
 
@@ -518,16 +518,20 @@ simplifies deployment.
 |---|---|---|
 | Frontend | **Vercel** (or Cloudflare Pages / Netlify) | Static SPA build; needs a rewrite rule so client-side routes serve `index.html` |
 | Backend | Render / Koyeb (no card) or Google Cloud Run (card, better cold starts) | Free tiers sleep when idle → first request after idle takes ~40s |
-| Database | PostgreSQL for the legacy survey/admin endpoints | Required when those endpoints remain enabled |
+| Database | **None needed** | Backend is stateless (§15) |
 
 **Required for deployment:**
 1. Push the repo to GitHub (hosts deploy from it).
-2. Backend: deploy `backend/Dockerfile`; set `SPRING_PROFILES_ACTIVE=prod`, `GEMINI_API_KEY`,
-  `APP_ADMIN_PASSWORD_HASH`, `APP_CORS_ALLOWED_ORIGINS`, and PostgreSQL `DB_URL`,
-  `DB_USERNAME`, `DB_PASSWORD` as host secrets/config (never commit them). The image binds to `$PORT`.
+2. Backend: deploy `backend/Dockerfile` (runs as non-root; sets `SPRING_PROFILES_ACTIVE=prod`); set
+  `GEMINI_API_KEY` and `APP_CORS_ALLOWED_ORIGINS` as host secrets/config (never commit them).
+  The image binds to `$PORT`.
 3. Set `APP_CORS_ALLOWED_ORIGINS` to the deployed frontend origin. Set
-  `APP_TRUST_FORWARDED_HEADERS=true` only when the backend is behind a trusted reverse proxy.
+  `APP_TRUST_FORWARDED_HEADERS=true` only when the backend is behind a trusted reverse proxy, and set
+  `APP_TRUSTED_PROXY_COUNT` to the number of proxies that append to `X-Forwarded-For` (usually `1`).
+  Set `BILL_DAILY_CAP` at or below your Gemini daily quota.
 4. Set frontend `VITE_API_BASE` to the deployed backend URL ending in `/api`.
+5. In `frontend/vercel.json`, tighten the CSP's `connect-src 'self' https:` to
+  `connect-src 'self' https://<your-backend-host>` once the backend URL is known.
 
 ---
 
@@ -547,4 +551,4 @@ Ideas evaluated for a small Gujarat solar installer, roughly by ROI:
    PM Surya Ghar and DISCOM net metering.
 6. **Subsidy/installation tracker** — customer-facing status through the bureaucratic
    PM Surya Ghar process.
-7. **Global daily cap** on bill uploads to complement the per-IP limit (§10).
+7. ~~Global daily cap on bill uploads~~ — done (§10).

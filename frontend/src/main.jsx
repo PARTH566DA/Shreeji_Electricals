@@ -8,7 +8,6 @@ import CalculatorPage from './pages/CalculatorPage.jsx'
 import Commercial from './pages/Commercial.jsx'
 import About from './pages/About.jsx'
 import BookSurvey from './pages/BookSurvey.jsx'
-import AdminLeads from './pages/AdminLeads.jsx'
 import NotFound from './pages/NotFound.jsx'
 import './i18n/index.js'
 import './index.css'
@@ -25,7 +24,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/commercial" element={<Commercial />} />
           <Route path="/about" element={<About />} />
           <Route path="/book-survey" element={<BookSurvey />} />
-          <Route path="/admin/leads" element={<AdminLeads />} />
           <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
