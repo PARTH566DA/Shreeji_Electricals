@@ -1,0 +1,103 @@
+spring:
+  application:
+    name: solar-gujarat-backend
+  # Load local-only secrets (Gemini key) if present; ignored when the file is absent.
+  config:
+    import: optional:application-local.yml
+  profiles:
+    default: dev
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
+server:
+  port: ${PORT:8090}
+  forward-headers-strategy: framework
+
+# CORS allowed origins (React dev server). Override per environment.
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+  # Admin auth for /api/leads — HTTP Basic with a BCrypt-hashed password.
+  # Default password is "shreeji-admin-2026". In production, override the hash via
+  # the APP_ADMIN_PASSWORD_HASH env var (never commit a real one). Generate a hash:
+  #   htpasswd -bnBC 10 "" 'your-password' | tr -d '\n' | sed 's/^://'
+  admin:
+    username: ${APP_ADMIN_USERNAME:admin}
+    password-hash: ${APP_ADMIN_PASSWORD_HASH:}
+  # Google Gemini vision API for bill reading (handwritten Gujarati + unclear photos).
+  # Free key: https://aistudio.google.com/apikey
+  #   - Local dev: put the key in application-local.yml (git-ignored, auto-loaded above).
+  #   - Prod: set the GEMINI_API_KEY env var (the extractor falls back to it).
+  # When no key is available, bill analysis falls back to local Tesseract OCR (printed bills only).
+  # NOTE: api-key is intentionally NOT set here — a default here would shadow the imported
+  # application-local.yml value. gemini-2.5-flash reads handwriting best; gemini-2.0-flash
+  # allows more free requests/day.
+  gemini:
+    model: ${GEMINI_MODEL:gemini-2.5-flash}
+  # Bill upload rate limit: one accepted upload per client IP per this many seconds.
+  # Each upload costs one Gemini vision call, so this protects the limited daily quota
+  # from being drained by a single visitor spamming photos. Set to 0 to disable.
+  bill:
+    rate-limit:
+      window-seconds: ${BILL_RATE_LIMIT_WINDOW_SECONDS:60}
+  trust-forwarded-headers: ${APP_TRUST_FORWARDED_HEADERS:false}
+
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:false}
+  swagger-ui:
+    enabled: ${SPRINGDOC_ENABLED:false}
+    path: /swagger-ui.html
+
+---
+# ---------- DEV profile (H2 in-memory) ----------
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:solardb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+app:
+  admin:
+    password-hash: ${APP_ADMIN_PASSWORD_HASH:$2y$10$Humfo2FFKHf4ZnMAIhq.RuB7FyXPKiXvPHgKI4LNwFLlaKkCYYnY.}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+---
+# ---------- PROD profile (PostgreSQL) ----------
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/solardb}
+    username: ${DB_USERNAME:solar}
+    password: ${DB_PASSWORD:solar}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+springdoc:
+  api-docs:
+    enabled: true

@@ -1,15 +1,18 @@
 # ---- Backend (Maven / Java) ----
-solar-gujarat/backend/target/
+backend/target/
 *.class
 
 # ---- Frontend (Node / Vite) ----
-solar-gujarat/frontend/node_modules/
-solar-gujarat/frontend/dist/
-solar-gujarat/frontend/.vite/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
 npm-debug.log*
 yarn-error.log*
 
 # ---- Env / secrets ----
+.env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 

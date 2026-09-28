@@ -1,0 +1,5 @@
+# Local secrets — keep out of git (Gemini key, etc.)
+src/main/resources/application-local.yml
+
+# Build output
+target/
