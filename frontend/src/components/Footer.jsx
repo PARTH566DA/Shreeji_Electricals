@@ -1,5 +1,5 @@
 import { siteConfig } from '../lib/siteConfig.js'
-import { Sun } from './icons.jsx'
+import logo from '../assets/shreeji-logo-transparent.png'
 
 export default function Footer() {
   return (
@@ -7,8 +7,8 @@ export default function Footer() {
       <div className="glass glass-solid mx-auto max-w-6xl px-6 py-8 text-sm text-ink">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-2 font-heading font-extrabold text-navy text-lg">
-              <Sun className="h-6 w-6 text-sun" /> {siteConfig.companyName}
+            <div className="flex items-center">
+              <img src={logo} alt={siteConfig.companyName} className="h-14 w-auto object-contain" />
             </div>
             <p className="mt-2 text-muted">{siteConfig.tagline}. PM Surya Ghar rooftop solar across Gujarat DISCOMs.</p>
           </div>

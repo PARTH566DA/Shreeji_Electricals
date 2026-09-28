@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import LanguageToggle from './LanguageToggle.jsx'
-import { Sun } from './icons.jsx'
 import { siteConfig } from '../lib/siteConfig.js'
+import logo from '../assets/shreeji-logo-transparent.png'
 
 const LINKS = [
   { to: '/', key: 'nav.home', end: true },
@@ -22,9 +22,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 px-3 pt-4">
       <nav className="glass glass-solid mx-auto max-w-6xl px-5 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-heading font-extrabold text-navy text-xl md:text-2xl" onClick={() => setOpen(false)}>
-          <Sun className="h-7 w-7 text-sun" />
-          <span>{siteConfig.companyName}</span>
+        <Link to="/" className="flex items-center" onClick={() => setOpen(false)}>
+          <img src={logo} alt={siteConfig.companyName} className="h-10 w-auto object-contain md:h-12" />
         </Link>
 
         {/* Desktop links */}
