@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next'
 import { analyzeBill } from '../lib/api.js'
 import { UploadCloud } from './icons.jsx'
 
-const CONF_LABEL = { high: 'High confidence', medium: 'Partial read', low: 'Low confidence' }
 const CONF_CLS = { high: 'text-leaf', medium: 'text-sun', low: 'text-muted' }
 // Matches the backend limit (app.bill.rate-limit.window-seconds). Keep in sync.
 const COOLDOWN_SECONDS = 60
 
 // The server may also refuse for hours once its global daily cap is reached.
-const formatWait = (s) => (s < 120 ? `${s}s` : s < 7200 ? `${Math.ceil(s / 60)} min` : `${Math.ceil(s / 3600)} h`)
+const formatWait = (t, s) =>
+  s < 120 ? t('time.seconds', { n: s }) : s < 7200 ? t('time.minutes', { n: Math.ceil(s / 60) }) : t('time.hours', { n: Math.ceil(s / 3600) })
 
 // Bill upload → OCR → editable detected fields that feed the calculator (brief §4.5).
 export default function BillUpload({ onUseValues }) {
@@ -51,9 +51,11 @@ export default function BillUpload({ onUseValues }) {
         // Server rejected as too soon — sync our countdown to its Retry-After.
         const wait = Number(err.response.data?.retryAfterSeconds) || COOLDOWN_SECONDS
         setCooldown(wait)
-        setError(err.response.data?.message || `Please wait ${formatWait(wait)} before uploading another bill.`)
+        setError(t('bill.wait', { time: formatWait(t, wait) }))
       } else {
-        setError(err.response?.data?.message || err.message || 'Upload failed')
+        // Server messages are English-only; map the failure to a localised one.
+        const status = err.response?.status
+        setError(t(status === 413 ? 'bill.errorSize' : status === 400 ? 'bill.errorType' : 'bill.errorGeneric'))
       }
     } finally {
       setLoading(false)
@@ -68,7 +70,7 @@ export default function BillUpload({ onUseValues }) {
   })
 
   const set = (k) => (e) => setFields((f) => ({ ...f, [k]: e.target.value }))
-  const inputCls = 'w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-ink focus:bg-white outline-none'
+  const inputCls = 'field'
 
   function useValues() {
     const units = fields.units ? Number(fields.units) : null
@@ -80,7 +82,7 @@ export default function BillUpload({ onUseValues }) {
     <section id="bill-upload" className="px-3 py-12 scroll-mt-24">
       <div className="mx-auto max-w-6xl">
         <h2 className="text-3xl text-navy text-center">{t('sections.bill')}</h2>
-        <p className="text-muted text-center mt-2">JPG, PNG or PDF of any Gujarat DISCOM bill — printed or handwritten, English or Gujarati. We read it, you confirm.</p>
+        <p className="text-muted text-center mt-2">{t('bill.intro')}</p>
 
         <div className="grid lg:grid-cols-2 gap-6 mt-6">
           <div
@@ -89,22 +91,22 @@ export default function BillUpload({ onUseValues }) {
               cooldown > 0 || loading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
             } ${isDragActive ? 'border-sky-deep bg-white/70' : 'border-white/60'}`}
           >
-            <input {...getInputProps()} aria-label="Upload electricity bill" />
+            <input {...getInputProps()} aria-label={t('bill.uploadAria')} />
             <div>
               <UploadCloud className="h-10 w-10 mx-auto text-sky-deep" />
               <p className="mt-3 text-ink font-medium">
                 {loading
-                  ? 'Reading your bill…'
+                  ? t('bill.reading')
                   : cooldown > 0
-                    ? `Please wait ${formatWait(cooldown)} before uploading another bill`
+                    ? t('bill.wait', { time: formatWait(t, cooldown) })
                     : isDragActive
-                      ? 'Drop the bill here'
-                      : 'Drag & drop your bill, or click to choose'}
+                      ? t('bill.drop')
+                      : t('bill.choose')}
               </p>
               {cooldown > 0 ? (
-                <p className="text-xs text-muted mt-1">To keep the free reader available for everyone, one bill can be read per minute.</p>
+                <p className="text-xs text-muted mt-1">{t('bill.cooldownNote')}</p>
               ) : (
-                <p className="text-xs text-muted mt-1">We never store your file — it's read once by a secure AI service; only the numbers you confirm are kept.</p>
+                <p className="text-xs text-muted mt-1">{t('bill.privacy')}</p>
               )}
               {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
             </div>
@@ -114,48 +116,49 @@ export default function BillUpload({ onUseValues }) {
             {result ? (
               <>
                 <p className={`text-sm font-semibold ${CONF_CLS[result.confidence] || 'text-muted'}`}>
-                  {CONF_LABEL[result.confidence] || 'Read complete'}
+                  {CONF_CLS[result.confidence] ? t(`bill.confidence.${result.confidence}`) : t('bill.readDone')}
                 </p>
-                <p className="text-sm text-muted mt-1">{result.message}</p>
+                {/* Localised by confidence level (the API's message is English-only). */}
+                <p className="text-sm text-muted mt-1">{t(`bill.message.${CONF_CLS[result.confidence] ? result.confidence : 'low'}`)}</p>
 
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <div>
-                    <label className="block text-sm font-medium text-ink mb-1" htmlFor="b-units">Monthly units (kWh)</label>
-                    <input id="b-units" type="number" value={fields.units} onChange={set('units')} className={inputCls} placeholder="e.g. 450" />
+                    <label className="block text-sm font-medium text-ink mb-1" htmlFor="b-units">{t('bill.units')}</label>
+                    <input id="b-units" type="number" value={fields.units} onChange={set('units')} className={inputCls} placeholder={t('calc.unitsPlaceholder')} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-ink mb-1" htmlFor="b-amount">Bill amount (₹)</label>
-                    <input id="b-amount" type="number" value={fields.amount} onChange={set('amount')} className={inputCls} placeholder="e.g. 2500" />
+                    <label className="block text-sm font-medium text-ink mb-1" htmlFor="b-amount">{t('bill.amount')}</label>
+                    <input id="b-amount" type="number" value={fields.amount} onChange={set('amount')} className={inputCls} placeholder={t('calc.billPlaceholder')} />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-ink mb-1" htmlFor="b-discom">DISCOM</label>
+                    <label className="block text-sm font-medium text-ink mb-1" htmlFor="b-discom">{t('bill.discom')}</label>
                     <select id="b-discom" value={fields.discom} onChange={set('discom')} className={inputCls}>
-                      <option value="">Select…</option>
-                      {['MGVCL', 'DGVCL', 'UGVCL', 'PGVCL'].map((d) => <option key={d} value={d}>{d}</option>)}
+                      <option value="">{t('bill.select')}</option>
+                      {['MGVCL', 'DGVCL', 'UGVCL', 'PGVCL'].map((d) => <option key={d} value={d}>{d} — {t(`discoms.${d}`)}</option>)}
                     </select>
                   </div>
                 </div>
 
                 {result.recommendedKw != null && (
                   <p className="mt-3 text-sm text-navy">
-                    Suggested system size: <span className="font-bold">{result.recommendedKw} kW</span>
+                    {t('bill.suggested')} <span className="font-bold">{result.recommendedKw} kW</span>
                   </p>
                 )}
 
                 <button type="button" onClick={useValues} className="btn-sky w-full mt-4" disabled={!fields.units && !fields.amount}>
-                  Use these values in the calculator ↓
+                  {t('bill.use')}
                 </button>
 
                 {result.rawTextPreview && (
                   <details className="mt-3 text-xs text-muted">
-                    <summary className="cursor-pointer">Show raw OCR text</summary>
+                    <summary className="cursor-pointer">{t('bill.raw')}</summary>
                     <pre className="mt-2 whitespace-pre-wrap bg-white/60 rounded-lg p-2 max-h-40 overflow-auto">{result.rawTextPreview}</pre>
                   </details>
                 )}
               </>
             ) : (
               <div className="h-full grid place-items-center text-center text-muted">
-                <p>Detected units and amount will appear here as editable fields. You can always correct them before calculating.</p>
+                <p>{t('bill.empty')}</p>
               </div>
             )}
           </div>

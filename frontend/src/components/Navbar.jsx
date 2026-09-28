@@ -43,7 +43,7 @@ export default function Navbar() {
           <button
             type="button"
             className="md:hidden p-2 text-navy"
-            aria-label="Menu"
+            aria-label={t('nav.menu')}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >

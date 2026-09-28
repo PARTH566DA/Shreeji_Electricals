@@ -8,13 +8,13 @@ export default function WhatsAppButton() {
     <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-3">
       <a
         href={`tel:${siteConfig.phone.replace(/\s/g, '')}`}
-        aria-label="Call us"
+        aria-label={t('contact.call')}
         className="h-12 w-12 rounded-full bg-sky-deep text-white grid place-items-center shadow-lg hover:scale-105 transition"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.3 11.3 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.3 11.3 0 0 0 .56 3.5 1 1 0 0 1-.25 1z"/></svg>
       </a>
       <a
-        href={whatsappLink('Hi, I want to know about rooftop solar under PM Surya Ghar.')}
+        href={whatsappLink(t('contact.whatsappPrefill'))}
         target="_blank"
         rel="noreferrer"
         aria-label={t('common.whatsapp')}

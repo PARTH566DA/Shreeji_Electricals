@@ -17,8 +17,10 @@ export default {
         leaf: '#1FBF75',
       },
       fontFamily: {
-        heading: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
+        // Latin glyphs come from the first font; Gujarati / Devanagari glyphs fall through
+        // to the matching Noto face instead of an arbitrary system fallback.
+        heading: ['"Plus Jakarta Sans"', '"Noto Sans Gujarati"', '"Noto Sans Devanagari"', 'system-ui', 'sans-serif'],
+        body: ['Inter', '"Noto Sans Gujarati"', '"Noto Sans Devanagari"', 'system-ui', 'sans-serif'],
         gujarati: ['"Noto Sans Gujarati"', 'sans-serif'],
         devanagari: ['"Noto Sans Devanagari"', 'sans-serif'],
       },

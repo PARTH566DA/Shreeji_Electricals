@@ -1,352 +1,342 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { ArrowRight } from './icons.jsx'
+import SolarScene from './sunCycle/SolarScene.jsx'
+import EnergyReadout from './sunCycle/EnergyReadout.jsx'
+import { clamp, deriveScene, smoothstep } from './sunCycle/sceneMath.js'
+import { useReducedMotion } from '../lib/useReducedMotion.js'
 
 /**
- * Scroll-driven "sun cycle" hero. The section is tall (cycleLength vh); an inner
- * sticky stage pins to the viewport while a full day plays out — sunrise on the
- * left, a noon peak, sunset on the right — with a rooftop PV array whose cast
- * shadow tracks the sun's real position.
+ * Scroll-driven "day of solar" hero. The section is tall (cycleLength vh); an inner
+ * sticky stage pins to the viewport while a full day plays out over an illustrated
+ * Gujarat home: sunrise → solar noon → sunset → night, with lighting, shadows, panel
+ * glint, live generation numbers and window lights all derived from one value `t`.
  *
- * Everything is a pure function of a single scroll value `t` (0→1) computed from
- * THIS section's getBoundingClientRect(), so nothing can drift out of sync and
- * the effect is fully contained (independent of total page length).
- *
- * Props (all optional):
- *   cycleLength  {number} 350  — section height in vh; longer = slower day.
- *   panelTilt    {number} 50   — panel/roof incline in deg (CSS 3D rotateX).
- *   arcHeight    {number} 0.82 — 0..1 fraction of the stage the noon sun rises to.
- *   panelScale   {number} 1    — multiplier on the panel+roof size.
- *   sunSize      {number} 104  — sun diameter in px (auto-reduced on mobile).
+ * `t` comes from THIS section's getBoundingClientRect() and is eased toward the scroll
+ * position each frame, so wheel/trackpad steps glide instead of jumping. All scene
+ * maths lives in sunCycle/sceneMath.js; geometry in sunCycle/SolarScene.jsx.
  */
-export default function SunCycleHero({
-  cycleLength = 350,
-  panelTilt = 50,
-  arcHeight = 0.82,
-  panelScale = 1,
-  sunSize = 104,
-}) {
+export default function SunCycleHero({ cycleLength = 320 }) {
+  const { t: tr } = useTranslation()
+  const reduced = useReducedMotion()
   const sectionRef = useRef(null)
+  const stageRef = useRef(null)
+  const copyRef = useRef(null)
   const [t, setT] = useState(0)
-  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1280)
-  const [reduced, setReduced] = useState(false)
+  const [box, setBox] = useState(() => ({
+    w: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    h: typeof window !== 'undefined' ? window.innerHeight : 800,
+    copyBottom: typeof window !== 'undefined' ? window.innerHeight * 0.5 : 400,
+  }))
 
-  // Respect prefers-reduced-motion: hold a pleasant static noon instead of animating.
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const apply = () => setReduced(mq.matches)
-    apply()
-    mq.addEventListener('change', apply)
-    return () => mq.removeEventListener('change', apply)
-  }, [])
-
-  // Single rAF-throttled scroll/resize loop → one value `t`. No heavy work in the
-  // scroll event itself; everything downstream derives from `t`.
-  useEffect(() => {
-    if (reduced) return // static state; no scroll wiring
-    let ticking = false
+  // Measure the stage and where the copy ends, so the sun's arc never crosses the text.
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    const copy = copyRef.current
+    if (!stage || !copy) return
     const measure = () => {
-      ticking = false
-      const el = sectionRef.current
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      const span = rect.height - window.innerHeight
-      const next = span > 0 ? clamp(-rect.top / span, 0, 1) : 0
-      setT(next)
-    }
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true
-        requestAnimationFrame(measure)
-      }
-    }
-    const onResize = () => {
-      setWidth(window.innerWidth)
-      onScroll()
+      const s = stage.getBoundingClientRect()
+      const c = copy.getBoundingClientRect()
+      setBox({ w: s.width, h: s.height, copyBottom: c.bottom - s.top })
     }
     measure()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
+    const ro = new ResizeObserver(measure)
+    ro.observe(stage)
+    ro.observe(copy)
+    return () => ro.disconnect()
+  }, [])
+
+  // Scroll → target t; a rAF loop eases the displayed t toward it and stops when settled.
+  useEffect(() => {
+    if (reduced) return
+    let raf = 0
+    let current = null
+    const target = () => {
+      const el = sectionRef.current
+      const stage = stageRef.current
+      if (!el || !stage) return 0
+      const rect = el.getBoundingClientRect()
+      const span = rect.height - stage.offsetHeight
+      return span > 0 ? clamp(-rect.top / span, 0, 1) : 0
+    }
+    const tick = () => {
+      raf = 0
+      const goal = target()
+      if (current === null) current = goal
+      const diff = goal - current
+      current = Math.abs(diff) < 0.0006 ? goal : current + diff * 0.14
+      setT(current)
+      if (current !== goal) raf = requestAnimationFrame(tick)
+    }
+    const kick = () => {
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+    kick()
+    window.addEventListener('scroll', kick, { passive: true })
+    window.addEventListener('resize', kick)
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
+      window.removeEventListener('scroll', kick)
+      window.removeEventListener('resize', kick)
+      cancelAnimationFrame(raf)
     }
   }, [reduced])
 
-  const isMobile = width < 640
-  const tEff = reduced ? 0.5 : t // reduced motion → fixed solar noon
-  const scene = useMemo(
-    () => deriveScene(tEff, { arcHeight, isMobile, sunSize }),
-    [tEff, arcHeight, isMobile, sunSize],
-  )
+  const wide = box.w >= 1024
+  const tEff = reduced ? 0.36 : t // reduced motion → a still, bright late morning
+  const scene = useMemo(() => deriveScene(tEff, box, wide), [tEff, box, wide])
+  const dark = scene.copy.white > 0.5
 
-  // Static PV cell grid (6×10) — memoized so the 60 cells are never rebuilt per frame.
-  const cells = useMemo(
-    () => Array.from({ length: 60 }, (_, i) => <span key={i} className="sch-cell" />),
-    [],
-  )
-
-  const scale = panelScale * (isMobile ? 0.64 : 1)
+  const headline = tr('hero.headline')
+  const comma = headline.indexOf(', ')
 
   return (
     <section
       ref={sectionRef}
-      aria-label="Rooftop solar through a full day"
-      style={{ height: reduced ? '100vh' : `${cycleLength}vh` }}
-      // Negative top margin tucks the sky up behind the floating navbar so its dawn
-      // gradient — not the site's global blue backdrop — fills the area around the
-      // navbar. The sticky stage still pins at top:0, so it covers the full viewport.
+      aria-label={tr('hero.aria')}
+      style={{ height: reduced ? '100svh' : `${cycleLength}vh` }}
+      // Negative top margin tucks the sky up behind the floating navbar.
       className="relative -mt-24"
     >
-      <style>{PANEL_CSS}</style>
+      <div ref={stageRef} className="sticky top-0 h-screen w-full overflow-hidden" style={{ height: '100svh' }}>
+        {/* ---- Sky ---- */}
+        <div aria-hidden className="absolute inset-0" style={{ background: scene.sky }} />
+        <div aria-hidden className="absolute inset-0" style={{ background: scene.glow }} />
+        <Stars opacity={scene.starsA} wide={wide} />
+        {wide && (
+          <div
+            aria-hidden
+            className="absolute right-[12%] top-[20%] h-9 w-9 rounded-full"
+            style={{
+              opacity: scene.moonA,
+              boxShadow: 'inset -9px 4px 0 0 #f4efd8',
+              filter: 'drop-shadow(0 0 10px rgba(244,239,216,0.45))',
+            }}
+          />
+        )}
 
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* ---- Sky (decorative) ---- */}
-        <div aria-hidden className="absolute inset-0" style={scene.sky} />
+        {/* ---- Sun: rotating rays, bloom, disc ---- */}
+        {scene.sun.visible && (
+          <div
+            aria-hidden
+            className="absolute"
+            style={{ left: scene.sun.x, top: scene.sun.y, transform: 'translate(-50%, -50%)' }}
+          >
+            <div
+              className="sch-rays absolute rounded-full"
+              style={{
+                // Centred on the disc: 50%/50% of the disc-sized wrapper, pulled back by half the rays' size.
+                width: scene.sun.size * 6,
+                height: scene.sun.size * 6,
+                left: '50%',
+                top: '50%',
+                marginLeft: -scene.sun.size * 3,
+                marginTop: -scene.sun.size * 3,
+                opacity: scene.sun.raysA,
+              }}
+            />
+            <div
+              className="relative rounded-full"
+              style={{
+                width: scene.sun.size,
+                height: scene.sun.size,
+                background: scene.sun.fill,
+                boxShadow: scene.sun.bloom,
+              }}
+            />
+          </div>
+        )}
 
-        {/* ---- Sun + glow (decorative) ---- */}
+        <Clouds color={scene.cloud} opacity={scene.cloudA} wide={wide} />
         <div
           aria-hidden
-          className="absolute rounded-full"
+          className="absolute inset-0"
           style={{
-            width: scene.sun.size,
-            height: scene.sun.size,
-            left: `${scene.sun.x}%`,
-            top: `${scene.sun.y}%`,
-            transform: 'translate(-50%, -50%)',
-            background: scene.sun.fill,
-            boxShadow: scene.sun.glow,
-            willChange: 'transform, opacity, box-shadow',
-            zIndex: 1,
+            background: `radial-gradient(ellipse ${wide ? '46% 52% at 26% 36%' : '80% 36% at 50% 26%'}, ${scene.scrim} 0%, transparent 100%)`,
           }}
         />
 
-        {/* ---- Roof plane + panel + cast shadow (decorative) ---- */}
-        <div
-          aria-hidden
-          className="absolute left-1/2 bottom-[7%]"
-          style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center', zIndex: 2 }}
-        >
-          <div className="sch-tilt" style={{ transform: `perspective(1200px) rotateX(${panelTilt}deg)` }}>
-            <div className="sch-roof" />
-            {/* Cast shadow — lies on the roof plane, driven by sun physics */}
-            <div
-              className="sch-shadow"
-              style={{
-                transformOrigin: scene.shadow.origin,
-                transform: `scaleX(${scene.shadow.len}) skewX(${scene.shadow.skew}deg)`,
-                filter: `blur(${scene.shadow.blur}px)`,
-                opacity: scene.shadow.opacity,
-                willChange: 'transform, opacity',
-              }}
-            />
-            <div className="sch-rail sch-rail-l" />
-            <div className="sch-rail sch-rail-r" />
-            <div className="sch-panelwrap">
-              <div className="sch-glass">{cells}</div>
-              {/* Glossy sheen that tracks the sun */}
-              <div className="sch-sheen" style={{ background: scene.sheen }} />
+        {/* ---- Landscape + house ---- */}
+        <SolarScene scene={scene} />
+        {/* Exit: over the last stretch of scroll the ground dissolves into the page colour,
+            so the night scene doesn't end in a hard edge against the light sections below. */}
+        {!reduced && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[26vh]"
+            style={{
+              opacity: smoothstep(0.93, 1, t),
+              background: 'linear-gradient(to bottom, rgba(236,246,255,0) 0%, rgba(236,246,255,0.85) 70%, rgb(236,246,255) 100%)',
+            }}
+          />
+        )}
+
+        {/* ---- Copy (real, focusable content) ---- */}
+        <div className={`absolute inset-x-0 top-0 z-10 ${wide ? '' : 'text-center'}`}>
+          <div
+            ref={copyRef}
+            className={
+              wide
+                ? 'mx-auto max-w-6xl px-8 pt-[max(16vh,124px)]'
+                : 'mx-auto max-w-xl px-5 pt-[max(13vh,108px)]'
+            }
+          >
+            <div className={wide ? 'max-w-[42rem]' : ''}>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs sm:text-sm font-semibold backdrop-blur-md transition-colors duration-500 ${
+                  dark ? 'border-white/20 bg-white/10 text-white' : 'border-white/70 bg-white/60 text-navy'
+                }`}
+              >
+                <SunGlyph />
+                {tr('hero.eyebrow')}
+              </span>
+
+              <h1
+                className={`mt-4 font-heading font-extrabold tracking-[-0.035em] ${
+                  wide
+                    ? 'text-[clamp(3.4rem,min(6.2vw,10.5vh),6rem)] leading-[0.98]'
+                    : 'text-[clamp(2.5rem,11vw,3.6rem)] leading-[1.02]'
+                }`}
+                style={{ color: scene.copy.color, textShadow: scene.copy.shadow, transition: 'color .4s ease, text-shadow .4s ease' }}
+              >
+                {comma > 0 ? (
+                  <>
+                    {headline.slice(0, comma + 1)}
+                    <br />
+                    {headline.slice(comma + 2)}
+                  </>
+                ) : (
+                  headline
+                )}
+              </h1>
+
+              <p
+                className={`mt-4 font-medium leading-relaxed ${
+                  wide ? 'max-w-[34rem] text-lg' : 'mx-auto max-w-md text-[15px] [@media(max-height:700px)]:hidden'
+                }`}
+                style={{ color: scene.copy.sub, transition: 'color .4s ease' }}
+              >
+                {tr('hero.sub')}
+              </p>
+
+              <div className={`mt-7 flex gap-3 ${wide ? '' : 'justify-center'}`}>
+                <Link to="/calculator" className={`btn-sun shadow-xl ${wide ? 'text-base' : '!px-4 !py-2.5 text-sm'}`}>
+                  {tr('hero.calcCta')}
+                  {wide && <ArrowRight className="h-5 w-5" />}
+                </Link>
+                <Link to="/book-survey" className={`btn-sky shadow-xl ${wide ? 'text-base' : '!px-4 !py-2.5 text-sm'}`}>
+                  {tr('hero.surveyCta')}
+                </Link>
+              </div>
             </div>
+            {wide && (
+              <div className="mt-8 [@media(max-height:740px)]:hidden">
+                <EnergyReadout energy={scene.energy} dark={scene.night > 0.5} />
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ---- Hero copy (real, focusable content) ---- */}
-        <div className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-5 pt-[14vh] sm:pt-[16vh] text-center">
-          <div
-            className="pointer-events-none absolute inset-x-0 top-[8vh] mx-auto h-[42vh] max-w-3xl rounded-[40px]"
-            style={{ background: scene.scrim }}
-          />
-          <h1
-            className="relative font-heading font-extrabold tracking-tight leading-[1.03] text-5xl sm:text-6xl md:text-7xl"
-            style={{ color: scene.textColor, textShadow: scene.textShadow }}
-          >
-            Solar, made simple.
-          </h1>
-          <p
-            className="relative mt-4 text-base sm:text-lg font-medium"
-            style={{ color: scene.captionColor }}
-          >
-            {scene.caption}
-          </p>
-          <div className="relative mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Link to="/calculator" className="btn-sun text-base shadow-xl">Calculate savings</Link>
-            <Link to="/book-survey" className="btn-sky text-base shadow-xl">Book free survey</Link>
+        {!wide && (
+          <div className="absolute bottom-4 left-4 right-[5.5rem] z-10 sm:right-auto sm:w-80">
+            <EnergyReadout energy={scene.energy} dark={scene.night > 0.5} compact />
           </div>
-        </div>
+        )}
+
+        {/* ---- Scroll hint ---- */}
+        {wide && !reduced && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute bottom-7 left-[41%] z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-xs font-semibold tracking-wide"
+            style={{ opacity: 1 - clamp(t / 0.05, 0, 1), color: scene.copy.color }}
+          >
+            <span className="flex h-9 w-6 justify-center rounded-full border-2 border-current pt-1.5">
+              <span className="sch-wheel h-2 w-1 rounded-full bg-current" />
+            </span>
+            {tr('hero.scroll')}
+          </div>
+        )}
       </div>
     </section>
   )
 }
 
-/* ------------------------------------------------------------------ */
-/* Physics + scene derivation — all pure functions of `t`.            */
-/* ------------------------------------------------------------------ */
-
-const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
-const lerp = (a, b, k) => a + (b - a) * k
-const smoothstep = (edge0, edge1, x) => {
-  const k = clamp((x - edge0) / (edge1 - edge0), 0, 1)
-  return k * k * (3 - 2 * k)
-}
-const mix = (c1, c2, k) => [
-  Math.round(lerp(c1[0], c2[0], k)),
-  Math.round(lerp(c1[1], c2[1], k)),
-  Math.round(lerp(c1[2], c2[2], k)),
-]
-const rgb = (c) => `rgb(${c[0]}, ${c[1]}, ${c[2]})`
-const rgba = (c, a) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`
-
-// Sky keyframes: sunrise coral → morning gold → midday blue → afternoon amber → dusk indigo.
-// Each stop has a top color and a lighter horizon-haze bottom color. Brand blue #4DA8FF at noon.
-const SKY_KEYS = [
-  { at: 0.0, top: [255, 201, 173], bottom: [255, 236, 222] },
-  { at: 0.25, top: [255, 220, 168], bottom: [246, 248, 252] },
-  { at: 0.5, top: [77, 168, 255], bottom: [233, 246, 255] },
-  { at: 0.75, top: [246, 160, 74], bottom: [255, 224, 178] },
-  { at: 1.0, top: [22, 30, 74], bottom: [70, 60, 110] },
-]
-
-function skyGradient(t) {
-  let a = SKY_KEYS[0]
-  let b = SKY_KEYS[SKY_KEYS.length - 1]
-  for (let i = 0; i < SKY_KEYS.length - 1; i++) {
-    if (t >= SKY_KEYS[i].at && t <= SKY_KEYS[i + 1].at) {
-      a = SKY_KEYS[i]
-      b = SKY_KEYS[i + 1]
-      break
-    }
-  }
-  const k = a.at === b.at ? 0 : (t - a.at) / (b.at - a.at)
-  const top = mix(a.top, b.top, k)
-  const bottom = mix(a.bottom, b.bottom, k)
-  return `linear-gradient(180deg, ${rgb(top)} 0%, ${rgb(mix(top, bottom, 0.55))} 58%, ${rgb(bottom)} 100%)`
+function SunGlyph() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden>
+      <circle cx="10" cy="10" r="4" fill="#FFB81C" />
+      <g stroke="#FFB81C" strokeWidth="1.6" strokeLinecap="round">
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((d) => (
+          <line key={d} x1="10" y1="2" x2="10" y2="3.8" transform={`rotate(${d} 10 10)`} />
+        ))}
+      </g>
+    </svg>
+  )
 }
 
-const SUN_HORIZON = [255, 179, 112] // soft amber at sunrise/sunset (not harsh orange)
-const SUN_NOON = [255, 246, 214] // near-white gold at zenith
-const GLOW_HORIZON = [255, 165, 104]
-const GLOW_NOON = [255, 236, 186]
-const NAVY = [11, 61, 145]
-const WHITE = [255, 255, 255]
+// Deterministic star field (seeded) so it never reshuffles between renders.
+const STARS = (() => {
+  let s = 7
+  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647)
+  return Array.from({ length: 90 }, () => ({
+    x: rnd() * 100,
+    y: rnd() * 62,
+    r: 0.8 + rnd() * 1.6,
+    d: (2.5 + rnd() * 3.5).toFixed(2),
+    delay: (rnd() * 4).toFixed(2),
+  }))
+})()
 
-const CAPTIONS = [
-  [0.06, 'Sunrise — panels waking up'],
-  [0.22, 'Morning — output climbing'],
-  [0.42, 'Approaching solar noon'],
-  [0.58, 'Solar noon — peak generation'],
-  [0.74, 'Late afternoon — still producing'],
-  [0.9, 'Sunset — output tapering off'],
-  [1.01, 'Dusk — the grid takes over'],
+function Stars({ opacity, wide }) {
+  if (opacity <= 0.001) return null
+  return (
+    <div aria-hidden className="absolute inset-0" style={{ opacity }}>
+      {STARS.slice(0, wide ? 90 : 50).map((st, i) => (
+        <span
+          key={i}
+          className="sch-star absolute rounded-full bg-white"
+          style={{
+            left: `${st.x}%`,
+            top: `${st.y}%`,
+            width: st.r,
+            height: st.r,
+            animationDuration: `${st.d}s`,
+            animationDelay: `${st.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// Kept clear of the headline column on desktop.
+const CLOUDS_WIDE = [
+  { x: 52, y: 14, w: 190, d: 55 },
+  { x: 80, y: 34, w: 300, d: 85 },
+]
+const CLOUDS_NARROW = [
+  { x: -12, y: 16, w: 190, d: 60 },
+  { x: 64, y: 9, w: 150, d: 50 },
 ]
 
-function captionFor(t) {
-  for (const [thr, label] of CAPTIONS) if (t <= thr) return label
-  return CAPTIONS[CAPTIONS.length - 1][1]
+function Clouds({ color, opacity, wide }) {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity }}>
+      {(wide ? CLOUDS_WIDE : CLOUDS_NARROW).map((cl) => (
+        <svg
+          key={cl.x}
+          viewBox="0 0 200 70"
+          className="sch-cloud absolute"
+          style={{ left: `${cl.x}%`, top: `${cl.y}%`, width: cl.w, animationDuration: `${cl.d}s` }}
+        >
+          <g fill={color}>
+            <ellipse cx="100" cy="52" rx="92" ry="16" />
+            <circle cx="70" cy="40" r="24" />
+            <circle cx="104" cy="30" r="30" />
+            <circle cx="138" cy="42" r="20" />
+          </g>
+        </svg>
+      ))}
+    </div>
+  )
 }
-
-function deriveScene(t, { arcHeight, isMobile, sunSize }) {
-  const sunAngle = t * Math.PI
-  const elevation = Math.sin(sunAngle) // 0 at horizons → 1 at noon
-
-  // Sun position: off-screen left → off-screen right; height by elevation.
-  const HORIZON_PCT = 72
-  const NOON_TOP_PCT = 10
-  const sunX = lerp(-5, 105, t)
-  const sunY = lerp(HORIZON_PCT, NOON_TOP_PCT, elevation * arcHeight)
-
-  const sunFill = rgb(mix(SUN_HORIZON, SUN_NOON, smoothstep(0, 1, elevation)))
-  const glowCol = mix(GLOW_HORIZON, GLOW_NOON, elevation)
-  const glow =
-    `0 0 ${lerp(26, 66, elevation)}px ${lerp(6, 26, elevation)}px ${rgba(glowCol, lerp(0.35, 0.72, elevation))}`
-
-  // Shadow: falls AWAY from the sun; long & soft when low, short & crisp at noon.
-  const dir = t < 0.5 ? 1 : -1 // +1 → shadow to the right, -1 → to the left
-  const len = lerp(2.4, 0.12, elevation) // scaleX factor (physical 1/tan clamped into this range)
-  const skew = (dir > 0 ? -1 : 1) * lerp(20, 0, elevation) // rakes sideways when sun is low
-  const shadow = {
-    origin: dir > 0 ? 'left center' : 'right center', // edge nearest the sun stays pinned
-    len,
-    skew,
-    blur: lerp(16, 3, elevation),
-    opacity: lerp(0.08, 0.32, elevation),
-  }
-
-  // Glass sheen: highlight sweeps across with the sun; warm at horizons, bright at noon.
-  const p = lerp(12, 88, t)
-  const sheenCol = mix(WHITE, [255, 210, 150], (1 - elevation) * 0.85)
-  const sheenA = lerp(0.1, 0.5, elevation)
-  const sheen =
-    `linear-gradient(105deg, transparent ${p - 16}%, ${rgba(sheenCol, sheenA)} ${p}%, transparent ${p + 16}%)`
-
-  // Keep copy readable at every stage: whiten text + strengthen scrim as dusk falls.
-  const w = smoothstep(0.72, 0.95, t)
-  const textColor = rgb(mix(NAVY, WHITE, w))
-  const captionColor = rgb(mix([27, 58, 92], WHITE, w))
-  const textShadow = w > 0.2 ? '0 2px 18px rgba(6,12,32,0.55)' : '0 2px 22px rgba(255,255,255,0.5)'
-  const scrim = `radial-gradient(60% 70% at 50% 40%, rgba(6,12,32,${lerp(0.04, 0.34, w)}) 0%, rgba(6,12,32,0) 100%)`
-
-  return {
-    sky: { background: skyGradient(t) },
-    sun: { x: sunX, y: sunY, size: sunSize * (isMobile ? 0.72 : 1), fill: sunFill, glow },
-    shadow,
-    sheen,
-    caption: captionFor(t),
-    textColor,
-    captionColor,
-    textShadow,
-    scrim,
-  }
-}
-
-/* Static structural CSS for the 3D panel + roof. Kept self-contained (project is
-   Tailwind-only, no CSS modules); dynamic values are inline styles above. */
-const PANEL_CSS = `
-.sch-tilt { position: relative; transform-style: preserve-3d; }
-.sch-shadow {
-  position: absolute; left: 50%; margin-left: -206px; bottom: 4px;
-  width: 412px; height: 62px;
-  background: radial-gradient(ellipse at center, rgba(6,14,30,0.9) 0%, rgba(6,14,30,0.4) 55%, rgba(6,14,30,0) 78%);
-  border-radius: 50%;
-}
-.sch-roof {
-  position: absolute; left: 50%; bottom: -22px; width: 772px; height: 258px;
-  transform: translateX(-50%);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.10)),
-    repeating-linear-gradient(90deg, #33425c 0 26px, #2c394f 26px 27px),
-    linear-gradient(180deg, #3a4a66 0%, #26324a 100%);
-  border-radius: 10px;
-  box-shadow: 0 30px 60px -20px rgba(6,12,32,0.55), inset 0 2px 0 rgba(255,255,255,0.12);
-}
-.sch-rail { position: absolute; left: 50%; bottom: 24px; width: 436px; height: 8px;
-  background: linear-gradient(180deg,#8593a6,#5b6678 60%,#454f61); border-radius: 4px; }
-.sch-rail-l { transform: translateX(-50%) translateY(30px); opacity: 0.5; }
-.sch-rail-r { transform: translateX(-50%) translateY(52px); opacity: 0.35; }
-.sch-panelwrap {
-  position: relative; width: 452px; height: 288px; margin: 0 auto;
-  padding: 9px; border-radius: 10px;
-  background: linear-gradient(150deg, #e8eef6 0%, #b9c6d6 42%, #8b9bb0 100%);
-  box-shadow: 0 22px 40px -16px rgba(6,12,32,0.6), inset 0 1px 2px rgba(255,255,255,0.9),
-    inset 0 -3px 8px rgba(9,25,55,0.35);
-}
-.sch-glass {
-  position: relative; width: 100%; height: 100%;
-  display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(10, 1fr);
-  gap: 3px; padding: 6px; border-radius: 5px;
-  background: linear-gradient(160deg, #0d2a52 0%, #0a2144 60%, #081a36 100%);
-}
-.sch-cell {
-  border-radius: 2px;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0) 42%),
-    repeating-linear-gradient(90deg, transparent 0 41%, rgba(200,220,246,0.14) 41% 42.5%, transparent 42.5% 100%),
-    linear-gradient(160deg, #1c4d8e 0%, #123f75 52%, #0c2c58 100%);
-  box-shadow: inset 0 0 5px rgba(0,0,0,0.35);
-}
-.sch-sheen {
-  position: absolute; inset: 9px; border-radius: 5px; pointer-events: none;
-  mix-blend-mode: screen;
-}
-@media (max-width: 640px) {
-  .sch-roof { width: 640px; }
-}
-`

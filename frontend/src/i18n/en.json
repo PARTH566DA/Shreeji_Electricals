@@ -1,4 +1,13 @@
 {
+  "meta": {
+    "title": "Gujarat Rooftop Solar"
+  },
+  "lang": {
+    "label": "Language",
+    "en": "English",
+    "gu": "ગુજરાતી",
+    "hi": "हिन्दी"
+  },
   "nav": {
     "home": "Home",
     "benefits": "Benefits",
@@ -6,43 +15,291 @@
     "commercial": "Commercial",
     "process": "Process",
     "about": "About",
-    "bookSurvey": "Book Survey"
+    "bookSurvey": "Book Survey",
+    "menu": "Menu",
+    "footer": "Footer"
   },
   "hero": {
     "headline": "Solar, made simple.",
     "calcCta": "Calculate savings",
     "surveyCta": "Book free survey",
-    "installed": "Over 500 systems installed"
+    "aria": "A day of rooftop solar, from sunrise to night",
+    "eyebrow": "PM Surya Ghar · subsidy up to ₹78,000",
+    "sub": "Rooftop solar for Gujarat homes and businesses. We design, install and handle the subsidy and net-metering paperwork.",
+    "system": "{{kw}} kW rooftop · clear day",
+    "today": "Today",
+    "saved": "Saved",
+    "scroll": "Scroll to watch a day of solar",
+    "phase": {
+      "sunrise": "Sunrise",
+      "morning": "Morning",
+      "noon": "Solar noon · peak",
+      "afternoon": "Afternoon",
+      "sunset": "Sunset",
+      "night": "Night · grid takes over"
+    }
   },
   "sections": {
     "benefits": "Why go solar in Gujarat",
     "scheme": "How PM Surya Ghar works",
     "bill": "Upload your bill, we'll size it for you",
     "calculator": "Cost & Subsidy Calculator",
-    "process": "Watch your roof come online",
     "testimonials": "Gujarat homes, switched on",
     "faq": "Frequently asked questions",
     "survey": "Book a free survey"
   },
+  "benefits": {
+    "items": [
+      { "title": "Lower bills", "text": "Generate your own power, cut your monthly bill." },
+      { "title": "₹78,000 subsidy", "text": "PM Surya Ghar subsidy, paid to your bank." },
+      { "title": "Net metering", "text": "Export surplus, spin your meter back." },
+      { "title": "3–5 yr payback", "text": "Strong Gujarat sun pays the system back fast." },
+      { "title": "25-year panels", "text": "ALMM-listed, long-warranty modules." },
+      { "title": "Clean energy", "text": "Cut tonnes of CO₂ every year." }
+    ]
+  },
+  "scheme": {
+    "steps": [
+      { "title": "Apply", "text": "Register on the PM Surya Ghar portal." },
+      { "title": "Approval", "text": "DISCOM checks feasibility." },
+      { "title": "Install", "text": "We fit ALMM-listed panels." },
+      { "title": "Net meter", "text": "Inspection + bidirectional meter." },
+      { "title": "Subsidy", "text": "Paid to your bank in 30–45 days." }
+    ],
+    "helpline": "Helpline {{number}}"
+  },
+  "home": {
+    "teaserTitle": "See your savings in seconds",
+    "teaserText": "Enter your bill — get size, subsidy and payback.",
+    "ctaTitle": "Ready to go solar?",
+    "ctaText": "Free survey. We handle the paperwork.",
+    "ctaButton": "Book a free survey"
+  },
+  "testimonials": {
+    "items": [
+      { "name": "Rajesh Patel", "city": "Vadodara (MGVCL)", "quote": "My ₹3,000 bill is almost zero now. The team handled all the MGVCL paperwork." },
+      { "name": "Nilamben Shah", "city": "Surat (DGVCL)", "quote": "Installed in a day, switched on within two months. Subsidy came to my bank as promised." },
+      { "name": "Imtiyaz Vora", "city": "Anand (MGVCL)", "quote": "Clear quote, no hidden costs. The savings calculator was exactly right." },
+      { "name": "Hardik Mehta", "city": "Rajkot (PGVCL)", "quote": "Net meter export means I earn back in summer. Best decision for our home." }
+    ],
+    "prev": "Previous testimonial",
+    "next": "Next testimonial",
+    "goto": "Testimonial {{n}}"
+  },
+  "faq": {
+    "items": [
+      { "q": "When do I get the subsidy?", "a": "The central PM Surya Ghar subsidy is paid by direct benefit transfer (DBT) to your bank, usually 30–45 days after the system is commissioned and the net meter is installed." },
+      { "q": "How does net metering work?", "a": "A bidirectional meter records what you export to the grid versus what you import. Surplus units offset your consumption, so your bill reflects only the net." },
+      { "q": "What if I move house?", "a": "The system stays with the property and adds resale value. Inform your DISCOM so the connection and any net-metering arrangement transfer to the new owner." },
+      { "q": "What warranty do the panels carry?", "a": "ALMM-listed, tier-1 panels typically carry up to a 25-year performance warranty, with separate product and inverter warranties." },
+      { "q": "Are loans available?", "a": "Yes — nationalised banks offer collateral-free loans for residential rooftop solar under the scheme. We can point you to current options." },
+      { "q": "What is ALMM?", "a": "The Approved List of Models and Manufacturers — panels must be ALMM-listed to qualify for subsidy and net metering. We only install ALMM-listed modules." }
+    ]
+  },
+  "discoms": {
+    "MGVCL": "Central Gujarat",
+    "DGVCL": "South Gujarat",
+    "UGVCL": "North Gujarat",
+    "PGVCL": "Saurashtra-Kutch"
+  },
+  "pages": {
+    "calculator": {
+      "eyebrow": "Residential & commercial",
+      "title": "Solar Savings Calculator",
+      "subtitle": "Pick home or business, enter your bill or units, and see system size, subsidy or tax benefit, savings and payback. Or upload your bill and we'll size it."
+    },
+    "commercial": {
+      "eyebrow": "For businesses",
+      "title": "Commercial & Industrial Solar",
+      "subtitle": "Factories, offices, shops, hotels and warehouses. No PM Surya Ghar subsidy — but accelerated-depreciation tax benefits and high commercial-tariff savings make payback fast.",
+      "benefits": [
+        { "title": "Accelerated depreciation", "text": "Claim up to 60% depreciation in year 1 — a real tax saving for your business." },
+        { "title": "Bigger savings", "text": "Commercial tariffs are high (~₹8/unit), so every solar unit saves more." },
+        { "title": "~3-year payback", "text": "Higher savings + lower cost mean faster return than residential." },
+        { "title": "Lower ₹/kW at scale", "text": "Larger systems cost less per kW than small home setups." },
+        { "title": "Net metering to 1 MW", "text": "Export surplus and offset your bill; open access above 1 MW." },
+        { "title": "Greener brand", "text": "Cut lakhs of units of grid power and your carbon footprint." }
+      ],
+      "diffTitle": "How it's different from home solar",
+      "diff": [
+        "No central PM Surya Ghar subsidy — that scheme is residential-only.",
+        "Instead, businesses claim accelerated depreciation (a tax saving) and GST input credit.",
+        "Net metering up to 1 MW; larger plants use gross metering or open access (GERC rules).",
+        "Systems are sized to your load and roof — from ~10 kW to multi-MW."
+      ],
+      "ctaTitle": "Estimate your business savings",
+      "ctaText": "See system size, tax benefit and payback for your site.",
+      "ctaCalc": "Commercial calculator",
+      "ctaSurvey": "Book a site survey"
+    },
+    "about": {
+      "eyebrow": "About us",
+      "title": "About {{company}}",
+      "subtitle": "Rooftop solar for Gujarat homes under PM Surya Ghar and SURYA Gujarat.",
+      "body": "A Gujarat rooftop-solar installer. We size the right system for your roof, handle the DISCOM paperwork, install fast, and support you after switch-on.",
+      "whyTitle": "Why choose us",
+      "why": [
+        { "title": "Local expertise", "text": "We know every Gujarat DISCOM." },
+        { "title": "Fast approvals", "text": "We chase the paperwork for you." },
+        { "title": "End-to-end", "text": "Portal to subsidy — all handled." },
+        { "title": "After-sales", "text": "Support and monitoring post install." }
+      ]
+    },
+    "survey": {
+      "eyebrow": "Free, no obligation",
+      "title": "Book a Free Survey",
+      "subtitle": "Tell us a few details and we'll call within 48 hours to assess your roof and DISCOM."
+    },
+    "notFound": {
+      "title": "404 — page not found",
+      "docTitle": "Page not found",
+      "text": "That page isn't wired up. Let's get you back on the grid.",
+      "home": "Back to home",
+      "calculator": "Open the calculator"
+    }
+  },
+  "calc": {
+    "subheading": "Estimate your system size, subsidy and payback in seconds.",
+    "iam": "I'm a",
+    "residential": "Home / residential",
+    "commercial": "Business / commercial",
+    "commercialNote": "No PM Surya Ghar subsidy for businesses — but accelerated-depreciation tax benefit applies.",
+    "byBill": "Monthly bill (₹)",
+    "byUnits": "Monthly units (kWh)",
+    "billLabel": "Average monthly electricity bill (₹)",
+    "unitsLabel": "Average monthly units (kWh)",
+    "billPlaceholder": "e.g. 2500",
+    "unitsPlaceholder": "e.g. 450",
+    "discom": "Your DISCOM",
+    "optional": "Optional: roof area & sanctioned load",
+    "roof": "Roof area (sq ft)",
+    "roofPlaceholder": "e.g. 400",
+    "load": "Sanctioned load (kW)",
+    "loadPlaceholder": "e.g. 4",
+    "submit": "Calculate my savings",
+    "submitting": "Calculating…",
+    "error": "We couldn't calculate right now. Please check your values and try again.",
+    "emptyTitle": "Your results will appear here",
+    "emptyText": "Enter your bill or units and tap “Calculate my savings” to see system size, subsidy, savings and payback."
+  },
+  "results": {
+    "netCost": "Your net cost after subsidy",
+    "effectiveCost": "Your effective cost after tax benefit",
+    "size": "Recommended size",
+    "systemCost": "System cost",
+    "depreciation": "Accelerated depreciation",
+    "depreciationHint": "1st-year tax saving — verify with your CA",
+    "subsidy": "Central subsidy (PM Surya Ghar)",
+    "topUp": "Gujarat state top-up",
+    "topUpHint": "Potential, subject to GEDA budget — verify",
+    "annualSavings": "Annual savings",
+    "generation": "Annual generation",
+    "payback": "Payback period",
+    "co2": "CO₂ avoided / year",
+    "lifetime": "{{years}}-year savings",
+    "unitYears": "yrs",
+    "unitTonnes": "t",
+    "disclaimerResidential": "Estimates only, based on average Gujarat generation and tariffs. Final figures depend on your roof, DISCOM tariff slab, and live subsidy rules.",
+    "disclaimerCommercial": "Estimates only. Commercial/industrial systems are not eligible for PM Surya Ghar subsidy; the accelerated-depreciation figure is an indicative first-year tax saving — confirm with your chartered accountant. Final figures depend on your roof, load, GERC tariff and net-metering rules."
+  },
+  "chart": {
+    "title": "Cumulative savings vs. net cost ({{years}} years)",
+    "year": "Year",
+    "yearN": "Year {{n}}",
+    "cumulative": "Cumulative savings",
+    "netCost": "Net cost {{value}}",
+    "payback": "Payback ~{{years}} yrs"
+  },
+  "bill": {
+    "intro": "JPG, PNG or PDF of any Gujarat DISCOM bill — printed or handwritten, English or Gujarati. We read it, you confirm.",
+    "uploadAria": "Upload electricity bill",
+    "reading": "Reading your bill…",
+    "wait": "Please wait {{time}} before uploading another bill",
+    "drop": "Drop the bill here",
+    "choose": "Drag & drop your bill, or click to choose",
+    "cooldownNote": "To keep the free reader available for everyone, one bill can be read per minute.",
+    "privacy": "We never store your file — it's read once by a secure AI service; only the numbers you confirm are kept.",
+    "confidence": {
+      "high": "High confidence",
+      "medium": "Partial read",
+      "low": "Low confidence"
+    },
+    "readDone": "Read complete",
+    "message": {
+      "high": "We read your bill. Please confirm the values below before calculating.",
+      "medium": "We read part of your bill. Please check and complete the values below.",
+      "low": "We couldn't read your bill clearly. Retake the photo in good light, or enter your monthly units or bill amount below."
+    },
+    "units": "Monthly units (kWh)",
+    "amount": "Bill amount (₹)",
+    "discom": "DISCOM",
+    "select": "Select…",
+    "suggested": "Suggested system size:",
+    "use": "Use these values in the calculator ↓",
+    "raw": "Show raw OCR text",
+    "empty": "Detected units and amount will appear here as editable fields. You can always correct them before calculating.",
+    "errorType": "Only JPG, PNG and PDF files are supported.",
+    "errorSize": "That file is too large. The maximum size is 10 MB.",
+    "errorGeneric": "Upload failed. Please try again, or enter your values manually."
+  },
+  "time": {
+    "seconds": "{{n}}s",
+    "minutes": "{{n}} min",
+    "hours": "{{n}} h"
+  },
   "survey": {
+    "subheading": "We'll assess your roof, handle the DISCOM paperwork, and give you a clear quote.",
     "name": "Name",
     "phone": "Mobile number",
+    "phonePlaceholder": "10-digit",
     "email": "Email",
     "city": "City",
     "address": "Full address",
     "discom": "DISCOM",
     "roofType": "Roof type",
+    "roofTypes": {
+      "RCC": "RCC",
+      "Metal sheet": "Metal sheet",
+      "Tiled": "Tiled",
+      "Other": "Other"
+    },
     "monthlyBill": "Approx. monthly bill (₹)",
     "preferredDate": "Preferred date",
     "message": "Message",
     "submit": "Book my free survey",
-    "submitting": "Booking…",
-    "confirmTitle": "Thanks, {{name}}!",
-    "confirmBody": "We'll call you within 48 hours.",
+    "errors": {
+      "name": "Name is required",
+      "phone": "Enter a valid 10-digit mobile number",
+      "email": "Enter a valid email",
+      "address": "Address is required",
+      "city": "City is required",
+      "roofType": "Select a roof type"
+    },
+    "doneTitle": "Almost done, {{name}}!",
+    "doneBody": "We've opened WhatsApp with your details filled in — just tap Send and we'll get your request. We'll reply shortly to arrange your free survey.",
     "another": "Book another"
+  },
+  "footer": {
+    "about": "Rooftop solar across Gujarat — PM Surya Ghar subsidy, DISCOM net-metering and installation, handled end to end.",
+    "explore": "Explore",
+    "contact": "Contact",
+    "official": "Official",
+    "address": "Vadodara, Gujarat, India",
+    "helpline": "PM Surya Ghar helpline: {{number}}",
+    "disclaimer": "Estimates are indicative only and not financial advice. Subsidy, tariff and cost figures depend on live PM Surya Ghar / GERC / GEDA rules and your DISCOM. © {{year}} {{company}}."
+  },
+  "contact": {
+    "call": "Call us",
+    "whatsappPrefill": "Hi, I want to know about rooftop solar under PM Surya Ghar."
   },
   "common": {
     "estimate": "Estimate only",
-    "whatsapp": "Chat on WhatsApp"
+    "whatsapp": "Chat on WhatsApp",
+    "loading": "Loading"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "text": "The page hit an unexpected error. Try reloading.",
+    "reload": "Reload"
   }
 }

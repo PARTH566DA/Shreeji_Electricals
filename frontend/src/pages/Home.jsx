@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import SunCycleHero from '../components/SunCycleHero.jsx'
 import BenefitsGrid from '../components/BenefitsGrid.jsx'
 import SchemeExplainer from '../components/SchemeExplainer.jsx'
@@ -10,14 +11,15 @@ import { usePageTitle } from '../lib/usePageTitle.js'
 
 // Teaser → Calculator page
 function CalculatorTeaser() {
+  const { t } = useTranslation()
   return (
     <section className="px-3 py-14">
       <Reveal>
         <div className="glass glass-solid mx-auto max-w-5xl px-6 py-12 text-center">
-          <h2 className="text-3xl md:text-4xl text-navy">See your savings in seconds</h2>
-          <p className="text-muted mt-2">Enter your bill — get size, subsidy and payback.</p>
+          <h2 className="text-3xl md:text-4xl text-navy">{t('home.teaserTitle')}</h2>
+          <p className="text-muted mt-2">{t('home.teaserText')}</p>
           <Link to="/calculator" className="btn-sun mt-6 inline-flex items-center gap-2">
-            Calculate savings <ArrowRight className="h-5 w-5" />
+            {t('hero.calcCta')} <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
       </Reveal>
@@ -27,14 +29,15 @@ function CalculatorTeaser() {
 
 // CTA band → Book a Survey page
 function SurveyCTA() {
+  const { t } = useTranslation()
   return (
     <section className="px-3 py-14">
       <Reveal>
         <div className="glass mx-auto max-w-5xl px-6 py-12 text-center bg-sun/15">
-          <h2 className="text-3xl md:text-4xl text-navy">Ready to go solar?</h2>
-          <p className="text-ink/80 mt-2">Free survey. We handle the paperwork.</p>
+          <h2 className="text-3xl md:text-4xl text-navy">{t('home.ctaTitle')}</h2>
+          <p className="text-ink/80 mt-2">{t('home.ctaText')}</p>
           <Link to="/book-survey" className="btn-sky mt-6 inline-flex items-center gap-2">
-            Book a free survey <ArrowRight className="h-5 w-5" />
+            {t('home.ctaButton')} <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
       </Reveal>
@@ -43,7 +46,7 @@ function SurveyCTA() {
 }
 
 export default function Home() {
-  usePageTitle(null) // home uses the base title
+  usePageTitle(null) // home uses the (localised) base title
   return (
     <>
       <SunCycleHero />

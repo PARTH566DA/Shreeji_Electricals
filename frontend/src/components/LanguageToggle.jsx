@@ -1,28 +1,28 @@
 import { useTranslation } from 'react-i18next'
+import { LANGUAGES } from '../i18n/index.js'
 
-const LANGS = [
-  { code: 'en', label: 'EN' },
-  { code: 'gu', label: 'ગુ' },
-  { code: 'hi', label: 'हि' },
-]
+const SHORT = { en: 'EN', gu: 'ગુ', hi: 'हि' }
 
-// Language switcher. Wired to i18next; full string coverage lands in Phase 7.
+// Language switcher. The choice is saved and restored by i18n/index.js.
 export default function LanguageToggle() {
-  const { i18n } = useTranslation()
+  const { t, i18n } = useTranslation()
   const active = i18n.resolvedLanguage || 'en'
   return (
-    <div className="inline-flex rounded-full bg-white/50 p-0.5 text-sm" role="group" aria-label="Language">
-      {LANGS.map((l) => (
+    <div className="inline-flex rounded-full bg-white/50 p-0.5 text-sm" role="group" aria-label={t('lang.label')}>
+      {LANGUAGES.map((code) => (
         <button
-          key={l.code}
+          key={code}
           type="button"
-          onClick={() => i18n.changeLanguage(l.code)}
-          aria-pressed={active === l.code}
-          className={`px-2.5 py-1 rounded-full transition ${
-            active === l.code ? 'bg-sky-deep text-white' : 'text-ink hover:bg-white/60'
+          lang={code}
+          onClick={() => i18n.changeLanguage(code)}
+          aria-pressed={active === code}
+          aria-label={t(`lang.${code}`)}
+          title={t(`lang.${code}`)}
+          className={`min-w-[2.25rem] px-2.5 py-1 rounded-full transition ${
+            active === code ? 'bg-sky-deep text-white' : 'text-ink hover:bg-white/60'
           }`}
         >
-          {l.label}
+          {SHORT[code]}
         </button>
       ))}
     </div>

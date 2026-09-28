@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+Gujarati:wght@400;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+Gujarati:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -99,8 +99,50 @@
     @apply btn bg-sky-deep text-white hover:bg-navy active:scale-[0.98] shadow-lg;
   }
   .btn-ghost {
-    @apply btn bg-white/70 text-ink hover:bg-white border border-white/60;
+    @apply btn bg-white text-ink hover:bg-sky-light border border-ink/15 shadow-sm;
   }
+  /* Form control: solid, bordered and clearly visible on the white glass cards. */
+  .field {
+    @apply w-full rounded-xl border border-ink/15 bg-white px-3.5 py-2.5 text-ink shadow-sm transition placeholder:text-muted/60;
+  }
+  .field:hover {
+    @apply border-ink/25;
+  }
+  .field:focus,
+  .field:focus-visible {
+    @apply border-sky-deep ring-4 ring-sky-deep/15;
+    outline: none;
+  }
+  .field[aria-invalid='true'] {
+    @apply border-red-400 ring-red-400/15;
+  }
+}
+
+/* Numeric fields: no browser spinner arrows (values are typed, never stepped). */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Gujarati / Devanagari: the Latin display styles (tight negative tracking, sub-1.0
+   line-height, uppercase eyebrows) break conjuncts and clip vowel signs (matras).
+   html[lang] is kept in sync by i18n/index.js. */
+:lang(gu) h1, :lang(gu) h2, :lang(gu) h3, :lang(gu) h4,
+:lang(hi) h1, :lang(hi) h2, :lang(hi) h3, :lang(hi) h4 {
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+:lang(gu) .tracking-wide, :lang(gu) .tracking-wider, :lang(gu) [class*='tracking-['],
+:lang(hi) .tracking-wide, :lang(hi) .tracking-wider, :lang(hi) [class*='tracking-['] {
+  letter-spacing: 0;
+}
+:lang(gu) body, :lang(hi) body {
+  line-height: 1.65;
 }
 
 /* CSS entrance animation — content is visible by default; this only enhances.
@@ -114,6 +156,42 @@
     animation: fadeInUp 0.6s ease-out both;
   }
 }
+
+/* ---- SunCycleHero ambient motion (independent of scroll) ---- */
+@keyframes sch-drift {
+  from { transform: translateX(-28px); }
+  to { transform: translateX(28px); }
+}
+@keyframes sch-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+@keyframes sch-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes sch-flow {
+  to { stroke-dashoffset: -36; }
+}
+@keyframes sch-wheel {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(9px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+@keyframes sch-ping {
+  75%, 100% { transform: scale(2.4); opacity: 0; }
+}
+.sch-cloud { animation: sch-drift 60s ease-in-out infinite alternate; }
+.sch-star { animation: sch-twinkle 4s ease-in-out infinite; }
+.sch-rays {
+  background: repeating-conic-gradient(from 0deg, rgba(255, 244, 214, 0.9) 0deg 2.5deg, rgba(255, 244, 214, 0) 2.5deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, #000 16%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 16%, transparent 62%);
+  animation: sch-spin 120s linear infinite;
+}
+.sch-flow { animation: sch-flow 1.1s linear infinite; }
+.sch-wheel { animation: sch-wheel 1.8s ease-in-out infinite; }
+.sch-ping { animation: sch-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.sch-readout { transition: background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

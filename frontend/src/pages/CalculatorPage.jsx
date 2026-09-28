@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import PageHeader from '../components/PageHeader.jsx'
 import BillUpload from '../components/BillUpload.jsx'
 import Calculator from '../components/Calculator.jsx'
@@ -9,7 +10,8 @@ import { usePageTitle } from '../lib/usePageTitle.js'
 // detected values into the calculator via shared `preset` state (unchanged logic).
 // `?type=commercial` opens the calculator in commercial mode.
 export default function CalculatorPage() {
-  usePageTitle('Solar Savings Calculator')
+  const { t } = useTranslation()
+  usePageTitle(t('pages.calculator.title'))
   const [params] = useSearchParams()
   const defaultType = params.get('type') === 'commercial' ? 'commercial' : 'residential'
   const [preset, setPreset] = useState(null)
@@ -22,9 +24,9 @@ export default function CalculatorPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Residential & commercial"
-        title="Solar Savings Calculator"
-        subtitle="Pick home or business, enter your bill or units, and see system size, subsidy or tax benefit, savings and payback. Or upload your bill and we'll size it."
+        eyebrow={t('pages.calculator.eyebrow')}
+        title={t('pages.calculator.title')}
+        subtitle={t('pages.calculator.subtitle')}
       />
       <BillUpload onUseValues={handleUseValues} />
       <Calculator preset={preset} showHeading={false} defaultType={defaultType} />
