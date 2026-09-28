@@ -512,26 +512,69 @@ limiting (see `web/CooldownRateLimiter` + `web/DailyCap`).
 
 ## 17. Deployment
 
-**Not yet deployed.** Target is a free stack for ~5–20 visitors/day:
+The supported deployment is **Vercel** for the Vite frontend and **Render** for the Dockerized
+Spring Boot API. The current application is intentionally stateless: survey details are sent to
+WhatsApp and calculator/bill analysis requests are not stored. Therefore Supabase is not required
+for the current feature set. Create a Supabase project now only if you want a database ready for a
+future leads/appointments feature; do not add a database URL to Render until the backend has a
+persistence feature and migration/schema for it.
 
-| Piece | Host | Notes |
-|---|---|---|
-| Frontend | **Vercel** (or Cloudflare Pages / Netlify) | Static SPA build; needs a rewrite rule so client-side routes serve `index.html` |
-| Backend | Render / Koyeb (no card) or Google Cloud Run (card, better cold starts) | Free tiers sleep when idle → first request after idle takes ~40s |
-| Database | **None needed** | Backend is stateless (§15) |
+### 17.1 Prepare the repository
 
-**Required for deployment:**
-1. Push the repo to GitHub (hosts deploy from it).
-2. Backend: deploy `backend/Dockerfile` (runs as non-root; sets `SPRING_PROFILES_ACTIVE=prod`); set
-  `GEMINI_API_KEY` and `APP_CORS_ALLOWED_ORIGINS` as host secrets/config (never commit them).
-  The image binds to `$PORT`.
-3. Set `APP_CORS_ALLOWED_ORIGINS` to the deployed frontend origin. Set
-  `APP_TRUST_FORWARDED_HEADERS=true` only when the backend is behind a trusted reverse proxy, and set
-  `APP_TRUSTED_PROXY_COUNT` to the number of proxies that append to `X-Forwarded-For` (usually `1`).
-  Set `BILL_DAILY_CAP` at or below your Gemini daily quota.
-4. Set frontend `VITE_API_BASE` to the deployed backend URL ending in `/api`.
-5. In `frontend/vercel.json`, tighten the CSP's `connect-src 'self' https:` to
-  `connect-src 'self' https://<your-backend-host>` once the backend URL is known.
+1. Push the repository to GitHub. Keep `backend/src/main/resources/application-local.yml` and all
+  API keys out of Git.
+2. Confirm the backend image can build locally:
+  ```bash
+  cd backend
+  mvn clean package
+  docker build -t shreeji-solar-api .
+  ```
+
+### 17.2 Deploy the backend to Render
+
+1. In Render, choose **New > Blueprint** and select this repository. Render will read the root
+  `render.yaml`, use `backend/Dockerfile`, and configure `/api/health` as the health check.
+2. In the service environment variables, set:
+  - `APP_CORS_ALLOWED_ORIGINS`: the exact Vercel origin, for example
+    `https://shreeji-electricals.vercel.app` (no trailing slash). Add a comma-separated preview
+    origin only when needed.
+  - `GEMINI_API_KEY`: the Gemini key used by bill analysis. Leave it unset if local Tesseract-only
+    fallback is acceptable.
+  - `BILL_DAILY_CAP`: a value at or below the Gemini daily quota, such as `50`.
+3. Do not set `PORT`; Render supplies it and the application reads `${PORT:8090}`.
+4. After deployment, verify `https://<render-service>.onrender.com/api/health` returns a healthy
+  response. The free Render service may sleep and take time to answer its first request.
+
+### 17.3 Deploy the frontend to Vercel
+
+1. In Vercel, choose **Add New > Project**, select the repository, and set **Root Directory** to
+  `frontend`.
+2. Use these build settings:
+  - Framework preset: `Vite`
+  - Build command: `npm run build`
+  - Output directory: `dist`
+  - Install command: `npm install`
+3. Add the production environment variable before deploying:
+  ```text
+  VITE_API_BASE=https://<render-service>.onrender.com/api
+  ```
+  Vite embeds this value into the browser bundle, so redeploy after changing it.
+4. `frontend/vercel.json` already rewrites client-side routes to `index.html` and sets security
+  headers. Test `/`, `/calculator`, `/commercial`, and `/book-survey` directly after deployment.
+5. Copy the final Vercel production URL into Render's `APP_CORS_ALLOWED_ORIGINS`, then redeploy or
+  restart the Render service.
+
+### 17.4 Optional Supabase setup
+
+Supabase is not connected by the current code because no endpoint writes data. If you create a
+project for future use:
+
+1. Create a Supabase project and keep the database password in a password manager.
+2. Use the **Transaction pooler** connection string for a serverless/container deployment when a
+  persistence feature is added. Store it in Render as a secret, never in Git or Vite variables.
+3. Add a schema migration and backend repository/service first, then add the matching Spring
+  datasource dependency and environment variables. Do not expose `SUPABASE_DB_URL`, service-role
+  keys, or database credentials to Vercel.
 
 ---
 
