@@ -13,5 +13,11 @@ export default defineConfig({
     strictPort: true,
     // Loopback only — don't expose the dev server (source + fs access) to the whole LAN.
     host: 'localhost',
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8090',
+        changeOrigin: true,
+      },
+    },
   },
 })

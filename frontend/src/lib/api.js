@@ -12,9 +12,7 @@ export const estimate = (payload) => api.post('/calculator/estimate', payload).t
 export const analyzeBill = (file) => {
   const form = new FormData()
   form.append('file', file)
-  return api
-    .post('/bill/analyze', form, { headers: { 'Content-Type': 'multipart/form-data' } })
-    .then((r) => r.data)
+  return api.post('/bill/analyze', form).then((r) => r.data)
 }
 
 export default api
