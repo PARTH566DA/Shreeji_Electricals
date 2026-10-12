@@ -24,10 +24,9 @@ app:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
   # Google Gemini vision API for bill reading (handwritten Gujarati + unclear photos).
   # Free key: https://aistudio.google.com/apikey
-  #   - Local dev: put the key in application-local.yml (git-ignored, auto-loaded above).
-  #   - Prod: set the GEMINI_API_KEY env var (the extractor falls back to it).
+  #   - Local dev and production: set the GEMINI_API_KEY environment variable.
   # When no key is available, bill analysis falls back to local Tesseract OCR (printed bills only).
-  # NOTE: api-key is intentionally NOT set here — a default here would shadow the imported
+  # NOTE: api-key is intentionally NOT set here — a default here could shadow the imported
   # application-local.yml value. gemini-2.5-flash reads handwriting best; gemini-2.0-flash
   # allows more free requests/day.
   gemini:

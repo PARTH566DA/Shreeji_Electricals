@@ -146,7 +146,7 @@ cd web/backend && mvn test
 
 ## 5. Configuration & secrets
 
-All backend config lives in `web/backend/src/main/resources/application.yml`.
+All backend config lives in `backend/src/main/resources/application.yml`.
 
 | Key | Default | Purpose |
 |---|---|---|
@@ -165,20 +165,13 @@ All backend config lives in `web/backend/src/main/resources/application.yml`.
 
 Get a free key at <https://aistudio.google.com/apikey>.
 
-- **Local dev:** put it in `web/backend/src/main/resources/application-local.yml` —
-  **git-ignored** via `web/backend/.gitignore`, auto-loaded by
-  `spring.config.import: optional:application-local.yml`.
-  ```yaml
-  app:
-    gemini:
-      api-key: YOUR_KEY_HERE
-  ```
+- **Local dev:** set `GEMINI_API_KEY` in your shell environment before starting the backend.
+  `application-local.yml` reads this variable but contains no credential itself.
 - **Production:** set the `GEMINI_API_KEY` environment variable.
 
-> ⚠️ `app.gemini.api-key` is **deliberately not set** in `application.yml`. A default there
-> (even an empty `${GEMINI_API_KEY:}`) would **shadow** the value imported from
-> `application-local.yml`, because `spring.config.import` files rank lower than the importing
-> file. The extractor resolves it as `${app.gemini.api-key:${GEMINI_API_KEY:}}`.
+> ⚠️ `app.gemini.api-key` is **deliberately not set** in `application.yml`. The imported
+> `application-local.yml` resolves it from `GEMINI_API_KEY`; setting an empty default in
+> `application.yml` could shadow the imported value because imported config has lower precedence.
 >
 > With no key, bill analysis silently falls back to local Tesseract OCR.
 
@@ -500,8 +493,9 @@ limiting (see `web/CooldownRateLimiter` + `web/DailyCap`).
   `PROGRESS.md` refer to the previous name.
 - **Frontend must run on port 5173** — `strictPort: true` + backend CORS allow-list. Kill stale
   processes rather than changing the port; a silent drift to 5174 breaks every API call.
-- **Never commit `application-local.yml`** — it holds the Gemini key and is git-ignored.
-- **`app.gemini.api-key` must not be set in `application.yml`** — it would shadow the imported
+- **Never put credentials in `application-local.yml` or commit it.** It is git-ignored and reads
+  the local `GEMINI_API_KEY` environment variable (see §5).
+- **`app.gemini.api-key` must not be set in `application.yml`** — it could shadow the imported
   local value (see §5).
 - **Vite's dev server hangs under sandboxed shells** — run `npm run dev` in a normal terminal.
 - **Tesseract is optional.** Without it, only the Gemini path works; the fallback degrades
