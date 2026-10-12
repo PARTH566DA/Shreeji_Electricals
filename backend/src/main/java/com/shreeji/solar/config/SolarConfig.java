@@ -27,8 +27,11 @@ public class SolarConfig {
     /** Gujarat generation estimate (~125 units/month per kW). */
     private int unitsPerKwPerYear = 1500;
 
-    /** recommendedKw = round(monthlyUnits / sizingDivisor). */
+    /** recommendedKw = round(monthlyUnits / sizingDivisor), then rounded up to whole panels. */
     private int sizingDivisor = 150;
+
+    /** Capacity of each supplied solar panel, in kW. */
+    private double panelCapacityKw = 0.62;
 
     /** Residential net-metering cap. */
     private int maxResidentialKw = 10;
@@ -59,7 +62,7 @@ public class SolarConfig {
     ));
 
     /** Cost per kW for a given system size — picks the nearest configured band. */
-    public int costPerKw(int kw) {
+    public int costPerKw(double kw) {
         return nearestBand(costPerKwByBand, kw);
     }
 
@@ -94,7 +97,7 @@ public class SolarConfig {
             1000, 38000
     ));
 
-    public int commercialCostPerKw(int kw) {
+    public int commercialCostPerKw(double kw) {
         return nearestBand(commercialCostPerKwByBand, kw);
     }
 
@@ -103,10 +106,10 @@ public class SolarConfig {
         return Math.round(systemCost * adDepreciationYear1 * corporateTaxRate);
     }
 
-    private static int nearestBand(Map<Integer, Integer> bands, int kw) {
+    private static int nearestBand(Map<Integer, Integer> bands, double kw) {
         int band = bands.keySet().stream()
-                .min((a, b) -> Integer.compare(Math.abs(a - kw), Math.abs(b - kw)))
-                .orElse(kw);
+                .min((a, b) -> Double.compare(Math.abs(a - kw), Math.abs(b - kw)))
+                .orElse((int) Math.round(kw));
         return bands.get(band);
     }
 }

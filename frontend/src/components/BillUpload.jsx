@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
 import { analyzeBill } from '../lib/api.js'
+import { formatSystemSize } from '../lib/format.js'
 import { UploadCloud } from './icons.jsx'
 
 const CONF_CLS = { high: 'text-leaf', medium: 'text-sun', low: 'text-muted' }
@@ -141,7 +142,7 @@ export default function BillUpload({ onUseValues }) {
 
                 {result.recommendedKw != null && (
                   <p className="mt-3 text-sm text-navy">
-                    {t('bill.suggested')} <span className="font-bold">{result.recommendedKw} kW</span>
+                    {t('bill.suggested')} <span className="font-bold">{formatSystemSize(result.recommendedKw)}</span>
                   </p>
                 )}
 

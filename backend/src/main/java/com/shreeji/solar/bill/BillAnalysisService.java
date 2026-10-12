@@ -149,7 +149,7 @@ public class BillAnalysisService {
 
     /** Shared by the Gemini and OCR paths: recommendation + confidence + message. */
     private BillAnalysisResponse buildResponse(Double units, Double amount, String discom, String rawPreview) {
-        Integer recommendedKw = null;
+        Double recommendedKw = null;
         double monthlyUnits = -1;
         if (units != null && units > 0) {
             monthlyUnits = units;

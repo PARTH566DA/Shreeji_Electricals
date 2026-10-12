@@ -34,16 +34,16 @@ public class CalculatorService {
         int maxKw = commercial ? cfg.getMaxCommercialKw() : cfg.getMaxResidentialKw();
 
         double monthlyUnits = deriveMonthlyUnits(req, tariff);
-        int recommendedKw = recommendKw(monthlyUnits, req.getRoofAreaSqft(), req.getSanctionedLoadKw(), maxKw);
+        double recommendedKw = recommendKw(monthlyUnits, req.getRoofAreaSqft(), req.getSanctionedLoadKw(), maxKw);
 
         long centralSubsidy = commercial ? 0 : centralSubsidy(recommendedKw);
         long stateTopUp = commercial ? 0 : stateTopUp(recommendedKw);
 
         int costPerKw = commercial ? cfg.commercialCostPerKw(recommendedKw) : cfg.costPerKw(recommendedKw);
-        long systemCost = roundTo100((long) recommendedKw * costPerKw);
+        long systemCost = roundTo100(Math.round(recommendedKw * costPerKw));
         long adBenefit = commercial ? roundTo100(cfg.acceleratedDepreciationBenefit(systemCost)) : 0;
         long netCost = roundTo100(systemCost - centralSubsidy - stateTopUp - adBenefit);
-        long annualUnits = (long) recommendedKw * cfg.getUnitsPerKwPerYear();
+        long annualUnits = Math.round(recommendedKw * cfg.getUnitsPerKwPerYear());
         long annualSavings = roundTo100(Math.round(annualUnits * tariff));
         double paybackYears = annualSavings > 0 ? round1((double) netCost / annualSavings) : 0;
         double co2 = round1(recommendedKw * cfg.getCo2TonnesPerKwYear());
@@ -84,7 +84,7 @@ public class CalculatorService {
     }
 
     /** Recommended size from monthly units alone (used by bill OCR sizing — residential). */
-    public int recommendKw(double monthlyUnits) {
+    public double recommendKw(double monthlyUnits) {
         return recommendKw(monthlyUnits, null, null, cfg.getMaxResidentialKw());
     }
 
@@ -93,30 +93,33 @@ public class CalculatorService {
         return monthlyBill / cfg.getAvgTariffPerUnit();
     }
 
-    /** recommendedKw = round(monthlyUnits / divisor), clamped to caps. */
-    int recommendKw(double monthlyUnits, Double roofAreaSqft, Double sanctionedLoadKw, int maxKw) {
+    /** Round the usage-based estimate up to whole panels, without exceeding system constraints. */
+    double recommendKw(double monthlyUnits, Double roofAreaSqft, Double sanctionedLoadKw, int maxKw) {
         int kw = (int) Math.round(monthlyUnits / cfg.getSizingDivisor());
         kw = Math.max(1, Math.min(kw, maxKw));
+        int maxPanels = (int) Math.floor(maxKw / cfg.getPanelCapacityKw());
         if (sanctionedLoadKw != null) {
-            kw = Math.min(kw, Math.max(1, (int) Math.floor(sanctionedLoadKw)));
+            maxPanels = Math.min(maxPanels, (int) Math.floor(sanctionedLoadKw / cfg.getPanelCapacityKw()));
         }
         if (roofAreaSqft != null) {
-            int roofCap = (int) Math.floor(roofAreaSqft / cfg.getRoofSqftPerKw());
-            kw = Math.min(kw, Math.max(1, roofCap));
+            double roofCapacityKw = roofAreaSqft / cfg.getRoofSqftPerKw();
+            maxPanels = Math.min(maxPanels, (int) Math.floor(roofCapacityKw / cfg.getPanelCapacityKw()));
         }
-        return Math.max(1, kw);
+        int requestedPanels = (int) Math.ceil(kw / cfg.getPanelCapacityKw());
+        int panelCount = Math.max(1, Math.min(requestedPanels, maxPanels));
+        return Math.round(panelCount * cfg.getPanelCapacityKw() * 100.0) / 100.0;
     }
 
     /** PM Surya Ghar exact slab: 1kW→30000, 2kW→60000, 3kW+→78000 (hard cap). */
-    long centralSubsidy(int recommendedKw) {
-        int k = Math.min(recommendedKw, 3);
-        long central = (k <= 2) ? (long) k * 30000 : 60000 + (long) (k - 2) * 18000;
+    long centralSubsidy(double recommendedKw) {
+        double k = Math.min(recommendedKw, 3);
+        long central = Math.round(Math.min(k, 2) * 30000 + Math.max(0, k - 2) * 18000);
         return Math.min(central, 78000);
     }
 
-    long stateTopUp(int recommendedKw) {
+    long stateTopUp(double recommendedKw) {
         if (!cfg.isStateTopUpEnabled()) return 0;
-        return (long) Math.min(recommendedKw, cfg.getStateTopupMaxKw()) * cfg.getStateTopupPerKw();
+        return roundTo100(Math.round(Math.min(recommendedKw, cfg.getStateTopupMaxKw()) * cfg.getStateTopupPerKw()));
     }
 
     private List<EstimateResponse.SavingsPoint> savingsSeries(long annualSavings) {

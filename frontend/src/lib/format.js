@@ -16,3 +16,8 @@ export function formatNumberIN(value) {
   if (value == null || Number.isNaN(value)) return '—'
   return num.format(value)
 }
+
+export function formatSystemSize(value) {
+  if (value == null || Number.isNaN(Number(value))) return '—'
+  return `${Number(value).toFixed(2).replace(/\.?0+$/, '')} kW`
+}

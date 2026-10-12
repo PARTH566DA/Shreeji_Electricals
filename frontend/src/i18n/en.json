@@ -183,8 +183,6 @@
     "emptyText": "Enter your bill or units and tap “Calculate my savings” to see system size, subsidy, savings and payback."
   },
   "results": {
-    "netCost": "Your net cost after subsidy",
-    "effectiveCost": "Your effective cost after tax benefit",
     "size": "Recommended size",
     "systemCost": "System cost",
     "depreciation": "Accelerated depreciation",
@@ -203,11 +201,10 @@
     "disclaimerCommercial": "Estimates only. Commercial/industrial systems are not eligible for PM Surya Ghar subsidy; the accelerated-depreciation figure is an indicative first-year tax saving — confirm with your chartered accountant. Final figures depend on your roof, load, GERC tariff and net-metering rules."
   },
   "chart": {
-    "title": "Cumulative savings vs. net cost ({{years}} years)",
+    "title": "Cumulative savings ({{years}} years)",
     "year": "Year",
     "yearN": "Year {{n}}",
     "cumulative": "Cumulative savings",
-    "netCost": "Net cost {{value}}",
     "payback": "Payback ~{{years}} yrs"
   },
   "bill": {

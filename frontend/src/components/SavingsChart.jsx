@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, ReferenceDot,
+  ReferenceDot,
 } from 'recharts'
 import { formatCurrencyINR } from '../lib/format.js'
 
@@ -14,16 +14,14 @@ function compactINR(v) {
   return `₹${trim(v / 1e3)}k`
 }
 
-// Cumulative savings vs. net cost over the projection horizon, payback marked.
+// Cumulative savings over the projection horizon, with the payback year marked.
 export default function SavingsChart({ result }) {
   const { t } = useTranslation()
   const data = result.savingsSeries
-  const netCost = result.netCost
   const payback = result.paybackYears
   const years = data.length ? data[data.length - 1].year : 25
 
-  // Point on the savings curve at the payback year (break-even with net cost).
-  const paybackPoint = { year: Math.round(payback), value: netCost }
+  const paybackPoint = { year: Math.round(payback), value: Math.round(payback) * result.annualSavings }
 
   return (
     <div className="mt-6">
@@ -42,8 +40,6 @@ export default function SavingsChart({ result }) {
             <YAxis tickFormatter={compactINR} tick={{ fill: '#5B708B', fontSize: 12 }} width={56} />
             <Tooltip formatter={(v) => [formatCurrencyINR(v), t('chart.cumulative')]} labelFormatter={(l) => t('chart.yearN', { n: l })} />
             <Area type="monotone" dataKey="cumulativeSavings" stroke="#1FBF75" strokeWidth={2} fill="url(#savingsFill)" />
-            {/* Net cost line — where savings cross it is break-even */}
-            <ReferenceLine y={netCost} stroke="#1B6FD6" strokeDasharray="5 4" label={{ value: t('chart.netCost', { value: formatCurrencyINR(netCost) }), position: 'insideTopRight', fill: '#1B6FD6', fontSize: 11 }} />
             <ReferenceDot x={paybackPoint.year} y={paybackPoint.value} r={6} fill="#FFB81C" stroke="#0B3D91" label={{ value: t('chart.payback', { years: payback }), position: 'top', fill: '#0B3D91', fontSize: 11 }} />
           </AreaChart>
         </ResponsiveContainer>

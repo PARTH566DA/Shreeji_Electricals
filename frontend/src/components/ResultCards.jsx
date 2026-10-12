@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import CountUp from './CountUp.jsx'
 import SavingsChart from './SavingsChart.jsx'
-import { formatCurrencyINR, formatNumberIN } from '../lib/format.js'
+import { formatCurrencyINR, formatNumberIN, formatSystemSize } from '../lib/format.js'
 
 function Stat({ label, children, unit, accent = 'text-navy', hint }) {
   return (
@@ -26,7 +26,7 @@ export default function ResultCards({ result }) {
   const lifetime = series.length ? series[series.length - 1].cumulativeSavings : null
 
   const stats = [
-    { key: 'kw', label: t('results.size'), accent: 'text-sky-deep', value: result.recommendedKw, format: (v) => Math.round(v), unit: 'kW' },
+    { key: 'kw', label: t('results.size'), accent: 'text-sky-deep', value: result.recommendedKw, format: formatSystemSize },
     { key: 'cost', label: t('results.systemCost'), value: result.systemCost, format: inr },
     commercial
       ? { key: 'ad', label: t('results.depreciation'), accent: 'text-leaf', hint: t('results.depreciationHint'), value: result.acceleratedDepreciationBenefit, format: inr }
@@ -44,18 +44,6 @@ export default function ResultCards({ result }) {
 
   return (
     <div>
-      {/* Hero number: net / effective cost */}
-      <div className="glass p-5 text-center bg-leaf/15">
-        <div className="text-sm text-ink/70">
-          {commercial ? t('results.effectiveCost') : t('results.netCost')}
-        </div>
-        <CountUp
-          value={result.netCost}
-          className="block text-4xl md:text-5xl font-heading font-extrabold text-navy mt-1 tabular-nums"
-          format={inr}
-        />
-      </div>
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
         {stats.map((s) => (
           <Stat key={s.key} label={s.label} accent={s.accent} hint={s.hint} unit={s.unit}>

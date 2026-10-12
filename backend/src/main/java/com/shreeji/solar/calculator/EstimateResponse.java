@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 public class EstimateResponse {
     private String consumerType;
-    private int recommendedKw;
+    private double recommendedKw;
     private long systemCost;
     private long centralSubsidy;
     private long stateTopUp;

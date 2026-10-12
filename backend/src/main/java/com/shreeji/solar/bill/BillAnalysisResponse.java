@@ -10,7 +10,7 @@ public class BillAnalysisResponse {
     private Double detectedAmount;
     private String detectedDiscom;
     private String confidence;       // high | medium | low
-    private Integer recommendedKw;
+    private Double recommendedKw;
     private String rawTextPreview;
     private String message;
 }
