@@ -27,7 +27,6 @@ export default function ResultCards({ result }) {
 
   const stats = [
     { key: 'kw', label: t('results.size'), accent: 'text-sky-deep', value: result.recommendedKw, format: formatSystemSize },
-    { key: 'cost', label: t('results.systemCost'), value: result.systemCost, format: inr },
     commercial
       ? { key: 'ad', label: t('results.depreciation'), accent: 'text-leaf', hint: t('results.depreciationHint'), value: result.acceleratedDepreciationBenefit, format: inr }
       : { key: 'sub', label: t('results.subsidy'), accent: 'text-leaf', value: result.centralSubsidy, format: inr },
@@ -37,14 +36,16 @@ export default function ResultCards({ result }) {
     { key: 'payback', label: t('results.payback'), accent: 'text-sky-deep', value: result.paybackYears, format: (v) => v.toFixed(1), unit: t('results.unitYears') },
     { key: 'co2', label: t('results.co2'), accent: 'text-leaf', value: result.co2TonnesPerYear, format: (v) => v.toFixed(1), unit: t('results.unitTonnes') },
   ].filter(Boolean)
-  // Keep the grid even (2 / 4 columns): add the 25-year total when there's a gap.
+  // Keep the grid even: add the 25-year total when there's an odd count.
   if (stats.length % 2 === 1 && lifetime != null) {
     stats.push({ key: 'life', label: t('results.lifetime', { years: series.length - 1 }), accent: 'text-leaf', value: lifetime, format: inr })
   }
 
+  const colCls = stats.length % 3 === 0 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'
+
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+      <div className={`grid ${colCls} gap-3 mt-4`}>
         {stats.map((s) => (
           <Stat key={s.key} label={s.label} accent={s.accent} hint={s.hint} unit={s.unit}>
             <CountUp value={s.value} format={s.format} />
