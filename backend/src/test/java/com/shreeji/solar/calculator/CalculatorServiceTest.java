@@ -40,6 +40,10 @@ class CalculatorServiceTest {
         int max = cfg.getMaxResidentialKw();
         // 150 units / 150 = 1 kW, rounded up to two 620 W panels.
         assertEquals(1.24, service.recommendKw(150, null, null, max), 0.001);
+        // 225 units / 150 = 1.5 kW -> ceil to three 620 W panels (1.86 kW).
+        assertEquals(1.86, service.recommendKw(225, null, null, max), 0.001);
+        // 300 units / 150 = 2.0 kW -> ceil to four 620 W panels (2.48 kW).
+        assertEquals(2.48, service.recommendKw(300, null, null, max), 0.001);
         // 450 units / 150 = 3 kW, rounded up to five panels.
         assertEquals(3.1, service.recommendKw(450, null, null, max), 0.001);
         // Huge usage is capped at the largest whole-panel residential size below 10 kW.

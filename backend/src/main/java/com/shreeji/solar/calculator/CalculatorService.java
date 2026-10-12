@@ -93,10 +93,10 @@ public class CalculatorService {
         return monthlyBill / cfg.getAvgTariffPerUnit();
     }
 
-    /** Round the usage-based estimate up to whole panels, without exceeding system constraints. */
+    /** Round the usage-based estimate up to whole 620 W panels (upper multiple), without exceeding constraints. */
     double recommendKw(double monthlyUnits, Double roofAreaSqft, Double sanctionedLoadKw, int maxKw) {
-        int kw = (int) Math.round(monthlyUnits / cfg.getSizingDivisor());
-        kw = Math.max(1, Math.min(kw, maxKw));
+        double rawKw = monthlyUnits / cfg.getSizingDivisor();
+        double targetKw = Math.max(1.0, Math.min(rawKw, maxKw));
         int maxPanels = (int) Math.floor(maxKw / cfg.getPanelCapacityKw());
         if (sanctionedLoadKw != null) {
             maxPanels = Math.min(maxPanels, (int) Math.floor(sanctionedLoadKw / cfg.getPanelCapacityKw()));
@@ -105,8 +105,8 @@ public class CalculatorService {
             double roofCapacityKw = roofAreaSqft / cfg.getRoofSqftPerKw();
             maxPanels = Math.min(maxPanels, (int) Math.floor(roofCapacityKw / cfg.getPanelCapacityKw()));
         }
-        int requestedPanels = (int) Math.ceil(kw / cfg.getPanelCapacityKw());
-        int panelCount = Math.max(1, Math.min(requestedPanels, maxPanels));
+        int requestedPanels = (int) Math.ceil(targetKw / cfg.getPanelCapacityKw());
+        int panelCount = Math.max(1, Math.min(requestedPanels, Math.max(1, maxPanels)));
         return Math.round(panelCount * cfg.getPanelCapacityKw() * 100.0) / 100.0;
     }
 

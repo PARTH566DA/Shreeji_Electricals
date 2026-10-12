@@ -27,7 +27,7 @@ public class SolarConfig {
     /** Gujarat generation estimate (~125 units/month per kW). */
     private int unitsPerKwPerYear = 1500;
 
-    /** recommendedKw = round(monthlyUnits / sizingDivisor), then rounded up to whole panels. */
+    /** recommendedKw = ceil(monthlyUnits / sizingDivisor / panelCapacityKw) * panelCapacityKw (multiple of 620 W, upper limit). */
     private int sizingDivisor = 150;
 
     /** Capacity of each supplied solar panel, in kW. */
